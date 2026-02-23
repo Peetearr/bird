@@ -1,0 +1,15 @@
+name: bird-mjx
+channels:
+  - nvidia/label/cuda-12.3.0
+  - conda-forge
+dependencies:
+  - cuda
+  - cudnn
+  - python=3.12
+  - pip:
+    - jax[cuda12]>=0.4.35
+    - mujoco>=3.2.4
+    - mujoco-mjx>=3.2.4
+    - matplotlib>=3.9.2
+    - flax>=0.10.0
+    - brax

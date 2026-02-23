@@ -1,0 +1,1 @@
+{"action_size": 5, "network_factory_kwargs": {"activation": "silu", "latent_vision": false, "policy_hidden_layer_sizes": [128, 128, 128, 128], "policy_obs_key": "", "vision": false}, "normalize_observations": true, "observation_size": [23]}

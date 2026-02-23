@@ -1,359 +1,115 @@
 # Управление орнитоптером методами обучения с подкреплением (SAC, PPO)
 
+С использованием [JAX](https://jax.readthedocs.io/) и
+[MuJoCo MJX](https://mujoco.readthedocs.io/en/stable/mjx.html).
+
 ## Участники
 
-Козло Н.А.
+Козлов Н.А. 466220
 
 ## Описание проводимого исследования
 
-Целью работы является синтез регулятора методами RL для удержания высоты роботом орнитоптером
+Целью работы является синтез регулятора методами RL для удержания высоты роботом орнитоптером.
 
+Среда представляет собой орнитоптер, имеющий три актуатора на крылья (сферический шанир) и два на хвост. Крылья жестко связаны и выполняют движения синхронно. Базовое тело орнитоптера имеет три степени свобоы и может перемещаться только в плоскость Oxz. В данном решении не используется изменение морфологии крыла. 
 
+В качестве алгоритмов обучения с подкреплением были использованы Proximal policy optimization и Soft actor-critic. 
 
+### Описание алгоритмов
 
+Proximal policy optimization - on-policy алгоритм, один из градиентных методов. Имеет следующие шаги:
 
-Hydrax implements various sampling-based MPC algorithms on GPU. It is heavily
-inspired by [MJPC](https://github.com/google-deepmind/mujoco_mpc), but focuses
-exclusively on sampling-based algorithms, runs on hardware accelerators via JAX
-and MJX, and includes support for [online domain
-randomization](#domain-randomization).
+    - Сбор данных в среде.
 
-Available methods:
+    - Оценка преимущества (advantages). Показывает, насколько лучше или хуже было выбранное действие по сравнению со средним действием агента в этом состоянии.
 
-| Algorithm | Description | Import |
-| --- | ---  | --- |
-| [Predictive sampling](https://arxiv.org/abs/2212.00541) | Take the lowest-cost rollout at each iteration. | [`hydrax.algs.PredictiveSampling`](hydrax/algs/predictive_sampling.py) |
-| [MPPI](https://arxiv.org/abs/1707.02342) | Take an exponentially weighted average of the rollouts. | [`hydrax.algs.MPPI`](hydrax/algs/mppi.py) |
-| [Cross Entropy Method](https://en.wikipedia.org/wiki/Cross-entropy_method) | Fit a Gaussian distribution to the `n` best "elite" rollouts. | [`hydrax.algs.CEM`](hydrax/algs/cem.py) |
-| [DIAL-MPC](https://arxiv.org/abs/2409.15610) | MPPI with dual-loop, annealed sampling covariance. | [`hydrax.algs.DIAL`](hydrax/algs/dial.py) |
-| [Evosax](https://github.com/RobertTLange/evosax/) | Any of the 30+ evolution strategies implemented in `evosax`. Includes CMA-ES, differential evolution, and many more. | [`hydrax.algs.Evosax`](hydrax/algs.evosax.py) |
+    - Обновление политики. Собранные данные используются для обновления политики несколько раз.
 
-## News
+    - Клиппирование. Основной механизм PPO необходимой для безопасного изменения политики и обеспечения стабильности. Соотношение вероятностей по старой политике к вероятностям по новой ограничевается $[1-\epsilon, 1+\epsilon]$ 
 
-- February 15, 2026. Our preferred package manager is now
-  [uv](https://docs.astral.sh/uv/), which is lighter weight and offers improved
-  reproducibility via `uv.lock`. Conda use is still possible, but we recommend
-  switching to uv for the best experience.
-- April 13, 2024. Large changes to the core `hydrax` functionality + some
-  breaking changes.
-    - Splines (and their knots) are now the default parameterization of the
-      control signals and decision variables! Before, it was always assumed that
-      every control step applied a zero-order hold. This is now a special case
-      of the new spline parameterization.
-    - All "time-based" variables are now specified in the controller.
-      Previously, variables like the planning horizon and number of sim steps
-      per control step were specified in the task. Now, the main variables to
-      specify are `plan_horizon` (the length of the planning horizon in
-      seconds), `num_knots` (the number of spline knots to plan with), and `dt`
-      (the planning time step (in the model XML)). **This is a breaking
-      change!**
+Главное преимущество - стабильность.
 
-## Setup (uv)
+Soft actor critic - off-policy алгоритм. Для алгоритма необходимо сеть actor для выбора действий, чтобы максимизировать награду и энтропию. Две сети критиков для оценки качесва пар состояние-действие. Две сети необходимы дляборьбы с переоценкой действий. И две сети целевых критиков для стабилизации обучения. Имеет следующие шаги:
 
-Clone this repository:
-```bash
-git clone https://github.com/vincekurtz/hydrax.git
-cd hydrax
-```
+    -Сбор данных в буфере воспроизведения (Replay Buffer): Агент взаимодействует со средой и сохраняет свой опыт в большой буфер. Ключевое отличие от PPO: может использовать опыт, собранный когда угодно в прошлом (off-policy).
 
-Install the package and dependencies:
-```bash
-uv sync
-```
+    -Обновление Критиков: Мы случайно выбираем "батч" опыта из буфера. Критики ($Q$) учатся предсказывать Q-ценность, используя награду и оценку будущей ценности от целевых критиков. Благодаря буферу мы можем перемешивать и многократно использовать старые данные.
 
-You can use `uv` to run examples and tests directly:
-```bash
-uv run python examples/pendulum.py mppi  # pendulum swing up with MPPI
-uv run pytest  # run unit tests
-```
+    -Обновление actor сети: Обновляется так, чтобы выбирать действия, которые дают высокую оценку от сетей критиков, но при этом сама политика должна иметь высокую энтропию.
 
-Or you can activate the virtual environment (created by `uv sync`) and run
-things directly:
-```bash
-source .venv/bin/activate
-python examples/pendulum.py mppi  # pendulum swing up with MPPI
-pytest  # run unit tests
-```
+Менее стабилен, сложен в настройке, более вычислительно сложен. Однако имеет высокую эффеективность к настраиваемым данным, и высокую робастность.
 
-## Setup (conda)
+### Описание среды
 
-Set up a conda env with cuda support (first time only):
+Функция наград представляет собой следующее выражение:
+$$
+R = -\| \mathbf{\delta x} \|_2
+$$
+ где $\delta x$ - вектор расстояний до целевой точки.
+
+В работе используются стандартные значения плотности и вязкости воздуха (стандартная атмосфера). Ускорение свободного падения равно 5 для упрощения обучения, поскольку изменение морфологии ограничено.
+
+### Результаты обучения 
+
+Процесс обучения приведены на графиках ниже:
+
+![Обучение PPO](results_imgs/ppo.png)
+&nbsp;&nbsp;&nbsp;
+![Обучение SAC](results_imgs/sac.png)
+
+На графиках видно, что SAC сходится быстрее, PPO сходится более стабильно. Политика, обученная алгоритмом PPO не регулирует положение орнитоптера. Процесс регулирования политикой обученной SAC представлен на рисунке ниже:
+
+![Валидация SAC](results_imgs/sac_valid.png)
+
+## Демонстрация работы
+
+Демонстарция запуска визуализации по [ссылке](https://drive.google.com/file/d/1nD46mVB0GjXdsE9univYCHuQVHb6Rzfm/view?usp=sharing)
+
+![Работа политики](imgs/Запись-экрана-от-23.02.2026-15_50_30.gif)
+
+Демонстарция запуска обучения по [ссылке](https://drive.google.com/file/d/1mzosN4c1lWQh43kfUqco2kbOuWKt-0I_/view?usp=sharing)
+
+Демонстарция запуска валидации по [ссылке](https://drive.google.com/file/d/1I5tEupWSYs4iVgIJxE_ifOzuMfkRL5-t/view?usp=sharing)
+
+## Развертывание и запуск
+
+Склонируйте репозиторий:
 
 ```bash
-conda env create -f environment.yml
+git clone https://github.com/Peetearr/bird.git
+cd bird
 ```
 
-Enter the conda env:
+Установите зависимости:
 
 ```bash
-conda activate hydrax
+conda env create -f environment.yaml
 ```
 
-Install the package and dependencies:
+Активируйте conda окружение:
 
 ```bash
-pip install -e .
+conda activate bird-mjx
 ```
 
-(Optional) Set up pre-commit hooks:
+Для запуска обучения выполните команду с указанием необходимого rl алгоритма (по умолчанию SAC):
 
 ```bash
-pre-commit autoupdate
-pre-commit install
+python src/train.py --alg sac
 ```
 
-(Optional) Run unit tests:
+Для запуска визуализации полиитики выполните команду с указанием пути до папки с сохраненной моделью (только для sac):
 
 ```bash
-pytest
+python src/vis_policy.py --path /home/user/bird/logs/sac/best_policy
 ```
 
-## Examples
-
-Launch an interactive pendulum swingup simulation with predictive sampling:
+Аналогично для валидации модели по высоте (только для sac):
 
 ```bash
-python examples/pendulum.py ps
+python src/vis_policy.py --path /home/user/bird/logs/sac/best_policy
 ```
 
-Launch an interactive humanoid standup simulation (shown above) with MPPI and
-online domain randomization:
+## Результаты
 
-```bash
-python examples/humanoid_standup.py
-```
-
-Other demos can be found in the `examples` folder.
-
-## Design your own task
-
-Hydrax considers optimal control problems of the form
-
-```math
-\begin{align}
-\min_{u_t} & \sum_{t=0}^{T} \ell(x_t, u_t) + \phi(x_{T+1}), \\
-\mathrm{s.t.}~& x_{t+1} = f(x_t, u_t),
-\end{align}
-```
-where $x_t$ is the system state and $u_t$ is the control input at time $t$, and
-the system dynamics $f(x_t, u_t)$ are defined by a mujoco MJX model.
-
-To design a new task, you'll need to specify the cost ($\ell$, $\phi$) and the
-dynamics ($f$). You can do this by creating a new class that inherits from
-[`hydrax.task_base.Task`](hydrax/task_base.py):
-
-```python
-class MyNewTask(Task):
-    def __init__(self, ...):
-        # Create or load a mujoco model defining the dynamics (f)
-        mj_model = ...
-        super().__init__(mj_model, ...)
-
-    def running_cost(self, x: mjx.Data, u: jax.Array) -> float:
-        # Implement the running cost (l) here
-        return ...
-
-    def terminal_cost(self, x: jax.Array) -> float:
-        # Implement the terminal cost (phi) here
-        return ...
-```
-
-
-The dynamics ($f$) are specified by a `mujoco.MjModel` that is passed to the
-constructor. Other constructor arguments specify the planning horizon $T$ and
-other details.
-
-For the cost, simply implement the `running_cost` ($\ell$) and `terminal_cost`
-($\phi$) methods.
-
-See [`hydrax.tasks`](hydrax/tasks) for some example task implementations.
-
-## Implement your own control algorithm
-
-Hydrax considers sampling-based MPC algorithms that follow the following
-[generic structure](https://arxiv.org/abs/2409.14562):
-
-![Generic sampling-based MPC algorithm block](img/spc_alg.png)
-
-The meaning of the parameters $\theta$ differ depending on the algorithm. In
-predictive sampling, for example, $\theta$ is the mean of a Gaussian
-distribution that the controls $U = [u_0, u_1, ...]$ are sampled from.
-
-To implement a new planning algorithm, you'll need to inherit from
-[`hydrax.alg_base.SamplingBasedController`](hydrax/alg_base.py) and implement
-the three methods shown below:
-
-```python
-class MyControlAlgorithm(SamplingBasedController):
-
-    def init_params(self) -> Any:
-        # Initialize the policy parameters (theta).
-        ...
-        return params
-
-    def sample_knots(self, params: Any) -> Tuple[jax.Array, Any]:
-        # Sample the spline knots U from the policy. Return the samples
-        # and the (updated) parameters.
-        ...
-        return controls, params
-
-    def update_params(self, params: Any, rollouts: Trajectory) -> Any:
-        # Update the policy parameters (theta) based on the trajectory data
-        # (costs, controls, observations, etc) stored in the rollouts.
-        ...
-        return new_params
-```
-
-These three methods define a unique sampling-based MPC algorithm. Hydrax takes
-care of the rest, including parallelizing rollouts on GPU and collecting the
-rollout data in a [`Trajectory`](hydrax/alg_base.py) object.
-
-**Note**: because of
-[the way JAX handles randomness](https://jax.readthedocs.io/en/latest/random-numbers.html),
-we assume the PRNG key is stored as one of the parameters $\theta$. This is why
-`sample_knots` returns updated parameters along with the control samples
-$U^{(1:N)}$.
-
-For some examples, take a look at [`hydrax.algs`](hydrax/algs).
-
-## Domain Randomization
-
-One benefit of GPU-based simulation is the ability to roll out trajectories with
-different model parameters in parallel. Such domain randomization can improve
-robustness and help reduce the sim-to-real gap.
-
-Hydrax provides tools to make online domain randomization easy. In particular,
-you can add domain randomization to any task by overriding the
-`domain_randomize_model` and `domain_randomize_data` methods of a given
-[`Task`](hydrax/task_base.py). For example:
-
-```python
-class MyDomainRandomizedTask(Task):
-    ...
-
-    def domain_randomize_model(self, rng: jax.Array) -> Dict[str, jax.Array]:
-        """Randomize the friction coefficients."""
-        n_geoms = self.model.geom_friction.shape[0]
-        multiplier = jax.random.uniform(rng, (n_geoms,), minval=0.5, maxval=2.0)
-        new_frictions = self.model.geom_friction.at[:, 0].set(
-            self.model.geom_friction[:, 0] * multiplier
-        )
-        return {"geom_friction": new_frictions}
-
-    def domain_randomize_data(self, data: mjx.Data, rng: jax.Array) -> Dict[str, jax.Array]:
-        """Randomly shift the measured configurations."""
-        shift = 0.005 * jax.random.normal(rng, (self.model.nq,))
-        return {"qpos": data.qpos + shift}
-```
-These methods return a dictionary of randomized parameters, given a particular
-random seed (`rng`). Hydrax takes care of the details of applying these
-parameters to the model and data, and performing rollouts in parallel.
-
-To use a domain randomized task, you'll need to tell the planner how many random
-models to use with the `num_randomizations` flag. For example,
-```python
-task = MyDomainRandomizedTask(...)
-ctrl = PredictiveSampling(
-    task,
-    num_samples=32,
-    noise_level=0.1,
-    num_randomizations=16,
-)
-```
-sets up a predictive sampling controller that rolls out 32 control sequences
-across 16 domain randomized models.
-
-The resulting [`Trajectory`](hydrax/alg_base.py) rollouts will have
-dimensions `(num_randomizations, num_samples, num_time_steps, ...)`.
-
-## Risk Strategies
-
-With domain randomization, we need to somehow aggregate costs across the
-different domains. By default, we take the average cost over the randomizations,
-similar to domain randomization in reinforcement learning. Other strategies are
-available via the [`RiskStrategy`](hydrax/risk.py) interface.
-
-For example, to plan using the worst-case maximum cost across randomizations:
-
-```python
-from hydrax.risk import WorstCase
-
-...
-
-task = MyDomainRandomizedTask(...)
-ctrl = PredictiveSampling(
-    task,
-    num_samples=32,
-    noise_level=0.1,
-    num_randomizations=16,
-    risk_strategy=WorstCase(),
-)
-```
-
-Available risk strategies:
-
-| Strategy | Description | Import |
-| --- | --- | --- |
-| Average (default) | Take the expected cost across randomizations. | [`hydrax.risk.AverageCost`](hydrax/risk.py) |
-| Worst-case | Take the maximum cost across randomizations. | [`hydrax.risk.WorstCase`](hydrax/risk.py) |
-| Best-case | Take the minimum cost across randomizations. | [`hydrax.risk.BestCase`](hydrax/risk.py) |
-| Exponential | Take an exponentially weighted average with parameter $\gamma$. This strategy could be risk-averse ($\gamma > 0$) or risk-seeking ($\gamma < 0$).  | [`hydrax.risk.ExponentialWeightedAverage`](hydrax/risk.py) |
-| VaR | Use the [Value at Risk (VaR)](https://en.wikipedia.org/wiki/Value_at_risk). | [`hydrax.risk.ValueAtRisk`](hydrax/risk.py) |
-| CVaR | Use the [Conditional Value at Risk (CVaR)](https://en.wikipedia.org/wiki/Expected_shortfall). | [`hydrax.risk.ConditionalValueAtRisk`](hydrax/risk.py) |
-
-## MuJoCo Warp (Experimental)
-
-Hydrax includes some preliminary experimental support for using [MuJoCo
-Warp](https://mujoco.readthedocs.io/en/latest/mjwarp/) as the simulation backend
-for performing rollouts, instead of JAX. This may offer some performance
-benefits over JAX.
-
-To try MjWarp with Hydrax, simply specify `impl="warp"` when constructing a
-task, e.g.,
-```python
-from hydrax.tasks.pendulum import Pendulum
-
-task = Pendulum(impl="warp")
-```
-
-## Open-Loop Trajectory Optimization
-
-While `hydrax` is primarily designed for sampling-based MPC, it can also be used
-for [offline sampling-based trajectory optimization](hydrax/open_loop.py). This
-includes support for various interpolation schemes, domain randomization, risk
-strategies, and any of the optimization algorithms described above.
-
-Performing open-loop trajectory optimization is as simple as calling the
-`trajectory_optimization` function. For example, to produce a cart-pole swingup
-trajectory using CEM:
-
-```python
-from hydrax.tasks.cart_pole import CartPole
-from hydrax.algs import CEM
-from hydrax.open_loop import trajectory_optimization, playback
-
-# Define the task (system to be optimized).
-task = CartPole()
-
-# Define the optimization algorithm, planning horizon, and other details.
-ctrl = CEM(
-    task,
-    num_samples=128,
-    num_elites=3,
-    sigma_start=0.5,
-    sigma_min=0.1,
-    spline_type="cubic",
-    plan_horizon=2.0,
-    num_knots=4,
-)
-
-# Set the initial state.
-mjx_data = task.make_data()
-
-# Run trajectory optimization, then play back the resulting trajectory.
-optimized_trajectory = trajectory_optimization(ctrl, mjx_data, iterations=10)
-playback(optimized_trajectory, ctrl)
-```
-
-For further details, see the
-[`examples/cart_pole_trajectory_optimization.py`](examples/cart_pole_trajectory_optimization.py).
+В результате выполнения работы была обучена сеть политики для управления орнитоптером методами PPO и SAC. Сеть PPO не справляется с поставленной задачей. Сеть actor SAC выполняет стабилизацию со статической ошибкой.

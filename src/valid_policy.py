@@ -1,15 +1,26 @@
+import sys
+from pathlib import Path
+import argparse
+
+root_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(root_dir))
+
 import jax
 import mujoco
-import mujoco.viewer
-from brax.io import model
 from brax import envs
 import jax.numpy as jp
 from mujoco import mjx
-from model import Bird
+from scripts.model import Bird
 from brax.training.agents.ppo import train as ppo
 from brax.training.agents.ppo import networks as ppo_networks
+from brax.training.agents.sac import checkpoint as sac_checkpoint  
+from brax.training.agents.ppo import checkpoint as ppo_checkpoint
 import functools
 import matplotlib.pyplot as plt
+
+parser = argparse.ArgumentParser(description='Алгоритм')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy')
+args = parser.parse_args()
 
 make_networks_factory = functools.partial(
     ppo_networks.make_ppo_networks,
@@ -21,15 +32,16 @@ train_fn = functools.partial(
     discounting=0.97, learning_rate=3e-4, entropy_cost=1e-3, num_envs=1,
     batch_size=1, network_factory=make_networks_factory, seed=0)
 
+ckpt_path = args.path
+try:
+    inference_fn = sac_checkpoint.load_policy(ckpt_path, deterministic=True)  
+except:
+    inference_fn = ppo_checkpoint.load_policy(ckpt_path, deterministic=True)  
+
 env_name = 'bird'
 envs.register_environment('bird', Bird)
 eval_env = envs.get_environment(env_name)
-make_inference_fn, _, _= train_fn(environment=eval_env)
 
-model_path = 'tmp/mjx_brax_policy_just_+.pkl'
-params = model.load_params(model_path)
-
-inference_fn = make_inference_fn(params)
 jit_inference_fn = jax.jit(inference_fn)
 
 mj_model = eval_env.sys.mj_model
@@ -41,21 +53,20 @@ rng = jax.random.PRNGKey(0)
 z_pos = []
 t = []
 ydataerr = []
-for _ in range(200):
+for _ in range(1000):
     act_rng, rng = jax.random.split(rng)
     obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-    ctrl, _ = jit_inference_fn(obs, act_rng)
+    action, _ = jit_inference_fn(obs, act_rng)
 
-    mj_data.ctrl = ctrl
+    mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]
     for _ in range(eval_env._n_frames):
         mujoco.mj_step(mj_model, mj_data)  # Physics step using MuJoCo mj_step.
-        z_pos.append(mj_data.qpos[2])
+        z_pos.append(-mj_data.qpos[1])
         t.append(mj_data.time)
         ydataerr.append(0.0)
 
-print(z_pos)
-plt.xlabel('# environment steps')
-plt.ylabel('reward per episode')
+plt.xlabel('environment steps')
+plt.ylabel('height')
 plt.title(f'y={z_pos[-1]:.3f}')
 
 plt.errorbar(

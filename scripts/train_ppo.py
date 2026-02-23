@@ -6,22 +6,33 @@ import matplotlib.pyplot as plt
 from scripts.model import Bird
 from brax import envs
 from brax.io import model
+import yaml
 
-from brax.training.agents.bc import train as bc
-from brax.training.agents.ppo import losses as ppo_losses  
-from brax.training.acme import running_statistics 
+config_path = 'config/config.yaml'
+with open(config_path, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
 
-# model_path = 'bc_model.pkl'
-# params = model.load_params(model_path)
 make_networks_factory = functools.partial(
     ppo_networks.make_ppo_networks,
         policy_hidden_layer_sizes=(128, 128, 128, 128))
 train_fn = functools.partial(
-    ppo.train, num_timesteps=100_000_000, num_evals=20, reward_scaling=0.1,
-    episode_length=1000, normalize_observations=True, action_repeat=1,
-    unroll_length=40, num_minibatches=24, num_updates_per_batch=8,
-    discounting=0.99, learning_rate=3e-5, entropy_cost=1e-3, num_envs=3072,
-    batch_size=256, network_factory=make_networks_factory, save_checkpoint_path='/home/user/bird/logs/ppo_1', seed=0)
+    ppo.train,  
+    num_timesteps = config['ppo']['num_timesteps'],
+    num_evals=config['ppo']['num_evals'],
+    reward_scaling=config['ppo']['reward_scaling'],
+    episode_length=config['ppo']['episode_length'], 
+    normalize_observations=config['ppo']['normalize_observations'], 
+    action_repeat=config['ppo']['action_repeat'],
+    discounting=config['ppo']['discounting'],
+    learning_rate=config['ppo']['learning_rate'], 
+    num_envs=config['ppo']['num_envs'], 
+    batch_size=config['ppo']['batch_size'],
+    entropy_cost=config['ppo']['entropy_cost'],
+    unroll_length=config['ppo']['unroll_length'],
+    num_minibatches=config['ppo']['num_minibatches'],
+    num_updates_per_batch=config['ppo']['num_updates_per_batch'],
+    save_checkpoint_path = config['ppo']['save_checkpoint_path'], 
+    seed=config['ppo']['seed'])
 
 if __name__ == '__main__':
   envs.register_environment('bird', Bird)

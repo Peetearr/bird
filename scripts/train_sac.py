@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 from scripts.model import Bird
 from brax import envs
 from brax.io import model
+import yaml
 
-from brax.training.agents.bc import train as bc
-from brax.training.agents.sac import losses as sac_losses  
-from brax.training.acme import running_statistics 
-import os
+config_path = 'config/config.yaml'
+with open(config_path, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
 
 make_networks_factory = functools.partial(
     sac_networks.make_sac_networks,
@@ -18,11 +18,23 @@ make_networks_factory = functools.partial(
 
 
 train_fn = functools.partial(
-    sac.train, num_timesteps=10_864_320, num_evals=20, reward_scaling=5, 
-    episode_length=1000, normalize_observations=True, action_repeat=1, 
-    discounting=0.997, learning_rate=6e-4, num_envs=128, batch_size=128, 
-    grad_updates_per_step=32, max_devices_per_host=1, max_replay_size=1048576, 
-    min_replay_size=8192, checkpoint_logdir='/home/user/bird/logs/sac_2', seed=1)
+    sac.train,
+    num_timesteps = config['sac']['num_timesteps'],
+    num_evals=config['sac']['num_evals'],
+    reward_scaling=config['sac']['reward_scaling'],
+    episode_length=config['sac']['episode_length'], 
+    normalize_observations=config['sac']['normalize_observations'], 
+    action_repeat=config['sac']['action_repeat'],
+    discounting=config['sac']['discounting'],
+    learning_rate=config['sac']['learning_rate'], 
+    num_envs=config['sac']['num_envs'], 
+    batch_size=config['sac']['batch_size'],
+    grad_updates_per_step=config['sac']['grad_updates_per_step'], 
+    max_devices_per_host=config['sac']['max_devices_per_host'], 
+    max_replay_size=config['sac']['max_replay_size'], 
+    min_replay_size=config['sac']['min_replay_size'], 
+    checkpoint_logdir=config['sac']['checkpoint_logdir'], 
+    seed=config['sac']['seed'])
 
 if __name__ == '__main__':
   envs.register_environment('bird', Bird)

@@ -1,16 +1,16 @@
 ppo:
   num_timesteps: 100000000
   num_evals: 20
-  reward_scaling: 0.1
+  reward_scaling: 5
   episode_length: 1000
   normalize_observations: True
   action_repeat: 1
   unroll_length: 40
   num_minibatches: 24
   num_updates_per_batch: 8
-  discounting: 0.99
-  learning_rate: 3e-5
-  entropy_cost: 1e-3
+  discounting: 0.97
+  learning_rate: 0.0003
+  entropy_cost: 0.001
   num_envs: 3072
   batch_size: 256
   save_checkpoint_path: '/home/user/bird/logs/ppo_1'
@@ -23,9 +23,8 @@ sac:
   episode_length: 1000
   normalize_observations: True
   action_repeat: 1
-  unroll_length: 40
   discounting: 0.997
-  learning_rate: 6e-4
+  learning_rate: 0.0006
   num_envs: 128
   batch_size: 128
   grad_updates_per_step: 32

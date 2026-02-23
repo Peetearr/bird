@@ -56,6 +56,10 @@ class Bird(PipelineEnv):
     self._exclude_current_positions_from_observation = (
         exclude_current_positions_from_observation
     )
+    
+  @property
+  def action_size(self) -> int:
+    return 5
 
   def reset(self, rng: jp.ndarray) -> State:
     """Resets the environment to an initial state."""

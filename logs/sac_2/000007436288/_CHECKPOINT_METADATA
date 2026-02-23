@@ -1,1 +1,0 @@
-{"item_handlers": "orbax.checkpoint._src.handlers.pytree_checkpoint_handler.PyTreeCheckpointHandler", "metrics": {}, "performance_metrics": {}, "init_timestamp_nsecs": 1771831228511974572, "commit_timestamp_nsecs": 1771831228547318161, "custom_metadata": {}}

@@ -60,8 +60,8 @@ $R = -\|\delta\mathbf{x}\|_2$
 На графиках видно, что SAC сходится быстрее, PPO сходится более стабильно. Политика, обученная алгоритмом PPO не регулирует положение орнитоптера. Процесс регулирования политикой обученной SAC представлен на рисунке ниже:
 
 ![Валидация SAC](results_imgs/sac_valid.png)
-![Валидация SAC 1](results_imgs/sac_valid_-20.png)
-![Валидация SAC 2](results_imgs/sac_valid_50.png)
+![Валидация SAC 1](results_imgs/sac_valid_-30.png)
+![Валидация SAC 2](results_imgs/sac_valid_30.png)
 
 ## Демонстрация работы
 

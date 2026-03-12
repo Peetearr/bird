@@ -50,12 +50,14 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
+h_target = 1.2
 z_pos = []
 t = []
 ydataerr = []
-for _ in range(1000):
+for _ in range(5000):
     act_rng, rng = jax.random.split(rng)
     obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
+    obs = obs.at[1].set(obs[1] + h_target)
     action, _ = jit_inference_fn(obs, act_rng)
 
     mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]

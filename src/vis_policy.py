@@ -39,15 +39,18 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
+h_target = 1.2
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
+            obs = obs.at[1].set(obs[1] + h_target)
+            # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
 
             mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]#action[4]]
             for _ in range(eval_env._n_frames):
                 mujoco.mj_step(mj_model, mj_data)  # Physics step using MuJoCo mj_step.
                 viewer.sync()
-                time.sleep(.01)
+                time.sleep(.001)

@@ -13,7 +13,7 @@ ppo:
   entropy_cost: 0.001
   num_envs: 3072
   batch_size: 256
-  save_checkpoint_path: '/home/user/bird/logs/ppo_1'
+  save_checkpoint_path: '/home/user/bird/logs/ppo_2'
   seed: 0
 
 sac:
@@ -31,5 +31,5 @@ sac:
   max_devices_per_host: 1
   max_replay_size: 1048576
   min_replay_size: 8192
-  checkpoint_logdir: '/home/user/bird/logs/sac_1'
+  checkpoint_logdir: '/home/user/bird/logs/sac_2'
   seed: 1

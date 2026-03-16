@@ -18,7 +18,8 @@ from brax.training.agents.ppo import checkpoint as ppo_checkpoint
 
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy')
+# parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy') 
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_1/000102727680')
 args = parser.parse_args()
 
 ckpt_path = args.path
@@ -39,18 +40,22 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
-h_target = 1.2
+h_target = 0
+byas = .17
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
+            t_0 = time.time()
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-            obs = obs.at[1].set(obs[1] + h_target)
+            obs = obs.at[1].set(obs[1] + h_target + byas)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
+            if any(act > 1 or act < -1 for act in action):
+                print("Одно или несколько действий выходят за пределы [-1, 1]")
 
-            mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]#action[4]]
+            mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
             for _ in range(eval_env._n_frames):
-                mujoco.mj_step(mj_model, mj_data)  # Physics step using MuJoCo mj_step.
+                mujoco.mj_step(mj_model, mj_data)
                 viewer.sync()
-                time.sleep(.001)
+                # print(mj_data.time)

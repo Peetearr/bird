@@ -91,7 +91,7 @@ class Bird(PipelineEnv):
 
   def step(self, state: State, action: jp.ndarray) -> State:
     """Runs one timestep of the environment's dynamics."""
-    action = jp.array([action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]])
+    action = jp.array([action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.])
     data0 = state.pipeline_state
     data = self.pipeline_step(data0, action)
 

@@ -17,7 +17,7 @@ ppo:
   seed: 0
 
 sac:
-  num_timesteps: 10864320
+  num_timesteps: 108643200
   num_evals: 20
   reward_scaling: 5
   episode_length: 1000

@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import argparse
+import functools
 
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
@@ -15,6 +16,8 @@ from scripts.model import Bird
 import time
 from brax.training.agents.sac import checkpoint as sac_checkpoint  
 from brax.training.agents.ppo import checkpoint as ppo_checkpoint
+from brax.training.agents.ppo import networks as ppo_networks
+import brax.training.acme.specs
 
 
 parser = argparse.ArgumentParser(description='Алгоритм')
@@ -24,9 +27,9 @@ args = parser.parse_args()
 
 ckpt_path = args.path
 try:
-    inference_fn = sac_checkpoint.load_policy(ckpt_path, deterministic=True)  
+    inference_fn = sac_checkpoint.load_policy(ckpt_path, deterministic=True)
 except:
-    inference_fn = ppo_checkpoint.load_policy(ckpt_path, deterministic=True)  
+    inference_fn = ppo_checkpoint.load_policy(ckpt_path)  
 
 env_name = 'bird'
 envs.register_environment('bird', Bird)
@@ -54,8 +57,9 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             if any(act > 1 or act < -1 for act in action):
                 print("Одно или несколько действий выходят за пределы [-1, 1]")
 
-            mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
+            # mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
+            mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
             for _ in range(eval_env._n_frames):
                 mujoco.mj_step(mj_model, mj_data)
                 viewer.sync()
-                # print(mj_data.time)
+                print(mj_data.time)

@@ -19,7 +19,7 @@ import functools
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_3/best_policy')
 args = parser.parse_args()
 
 make_networks_factory = functools.partial(
@@ -50,18 +50,18 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
-h_target = .6
+h_target = 1.0
 byas = .17
 z_pos = []
 t = []
 ydataerr = []
-for _ in range(5000):
+for _ in range(1500):
     act_rng, rng = jax.random.split(rng)
     obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
     obs = obs.at[1].set(obs[1] + h_target + byas)
     action, _ = jit_inference_fn(obs, act_rng)
 
-    mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]
+    mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
     for _ in range(eval_env._n_frames):
         mujoco.mj_step(mj_model, mj_data)  # Physics step using MuJoCo mj_step.
         z_pos.append(-mj_data.qpos[1])

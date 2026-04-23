@@ -21,7 +21,6 @@ import brax.training.acme.specs
 
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-# parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy') 
 parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_3/best_policy')
 args = parser.parse_args()
 
@@ -43,7 +42,7 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
-h_target = 0
+h_target = 1
 byas = .17
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:

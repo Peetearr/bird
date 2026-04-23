@@ -7,13 +7,14 @@ from mujoco import mjx
 from brax.envs.base import PipelineEnv, State
 from brax.io import mjcf
 
+jax.config.update("jax_debug_nans", True)
 
 class Bird(PipelineEnv):
 
   def __init__(
       self,
-      forward_reward_weight=1,
-      ctrl_cost_weight=0,#0.1,
+      forward_reward_weight=.001,
+      ctrl_cost_weight=0.1,
       healthy_reward=0.0,
       terminate_when_unhealthy=False,
       healthy_z_range=(-1.0, 1.0),
@@ -71,8 +72,8 @@ class Bird(PipelineEnv):
     qvel = jax.random.uniform(
         rng2, (self.sys.nv,), minval=low, maxval=hi
     )
-    qpos = qpos.at[3:].set(0.0)
-    qvel = qvel.at[3:].set(0.0)
+    qpos = qpos.at[6:].set(0.0)
+    qvel = qvel.at[6:].set(0.0)
 
     data = self.pipeline_init(qpos, qvel)
 
@@ -95,18 +96,8 @@ class Bird(PipelineEnv):
     data0 = state.pipeline_state
     data = self.pipeline_step(data0, action)
 
-    com_after = data.qpos[:2]
-
-    # flap_pos_l = data.qpos[4]
-    # flap_pos_r = data.qpos[7]
-
-    # flap_acc_l = data.qacc[4]
-    # flap_acc_r = data.qacc[7]
-
-    # N1 = -jp.square(flap_acc_l + (5*2*jp.pi)**2 * flap_pos_l)
-    # N2 = -jp.square(flap_acc_r + (5*2*jp.pi)**2 * flap_pos_r)
+    com_after = data.qpos[:6]
     distance = -jp.linalg.norm(com_after)
-    # velocities = -(jp.square(data.qvel[0]) + jp.square(data.qvel[1]))
     forward_reward = self._forward_reward_weight * distance
 
     # min_z, max_z = self._healthy_z_range
@@ -132,6 +123,7 @@ class Bird(PipelineEnv):
         z_position=com_after[2],
         distance_from_target=distance
     )
+    # jax.debug.breakpoint()
 
     return state.replace(
         pipeline_state=data, obs=obs, reward=reward, done=done
@@ -147,8 +139,12 @@ class Bird(PipelineEnv):
 
     # external_contact_forces are excluded
     return jp.concatenate([
-        data.qpos[:6],
-        data.qacc[3:6],
-        data.qvel[:6],
-        data.qfrc_actuator[3:],
-    ])
+        data.qpos[:9],
+        data.qpos[12:],
+        data.qacc[6:9],
+        data.qacc[12:],
+        data.qvel[6:9],
+        data.qvel[12:]])
+    # ,
+    #     data.qfrc_actuator[6:],
+    # ])

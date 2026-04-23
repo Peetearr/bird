@@ -3,11 +3,14 @@
     <worldbody>
         <body name="base" pos=".25 .25 .15" euler="0 90 0">
             <!-- <joint type="free"/> -->
-            <joint type="slide" axis="0 0 1"/>
-            <joint type="slide" axis="1 0 0"/>
-            <joint type="hinge" axis="0 1 0"/>
+            <joint type="slide" axis="0 0 1" armature="0.00001"/>
+            <joint type="slide" axis="1 0 0" armature="0.00001"/>
+            <joint type="slide" axis="0 1 0" armature="0.00001"/>
+            <joint type="hinge" axis="0 1 0" armature="0.00001"/>
+            <joint type="hinge" axis="1 0 0" armature="0.00001"/>
+            <joint type="hinge" axis="0 0 1" armature="0.00001"/>
             <geom type="capsule" size=".03" fromto="0 0 0 .1 0 0" 
-            mass=".1" rgba="0 1 1 .2"/>
+            mass=".05" rgba="0 1 1 .2"/>
             <body name="wing_1_1" pos="0 .02 0" gravcomp="1">
                 <joint name="AoA" axis="0 1 0" armature="1"/>
                 <joint name="sweep_angle" axis="0 0 1" armature="1"/>

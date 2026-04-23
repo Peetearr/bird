@@ -7,7 +7,7 @@ import time
 import pickle
 import matplotlib.pyplot as plt
 
-def control(err, derr, kp = 1, kd = .01, A_0 = 1.25):
+def control(err, derr, kp = 1, kd = .01, A_0 = 1.8):
     return A_0 - (kp*err + kd*derr)
 
 m = mujoco.MjModel.from_xml_path('model/scene.xml')
@@ -38,7 +38,7 @@ while True:
     pitch_d_err = -d.qvel[2].copy() - 2*d.qvel[0].copy()
     w = 32
     A = control(err, d_err)
-    tail_pitch = control(pitch_err, pitch_d_err, A_0=0, kp=1, kd=.5)
+    tail_pitch = control(pitch_err, pitch_d_err, A_0=0, kp=.1, kd=.1)
 
     obs = np.concatenate([
         d.qpos[:6],
@@ -61,6 +61,7 @@ while True:
     t.append(d.time)
     ydataerr.append(0.0)
     viewer.sync()
+    print(d.qvel)
     time.sleep(.01)
     # actions.append(act)
     observations.append(obs)

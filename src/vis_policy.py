@@ -22,7 +22,7 @@ import brax.training.acme.specs
 
 parser = argparse.ArgumentParser(description='Алгоритм')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy') 
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_1/000102727680')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_3/best_policy')
 args = parser.parse_args()
 
 ckpt_path = args.path

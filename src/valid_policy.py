@@ -19,7 +19,7 @@ import functools
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000070287360')
 args = parser.parse_args()
 
 make_networks_factory = functools.partial(
@@ -55,26 +55,28 @@ byas = .17
 z_pos = []
 t = []
 ydataerr = []
-for _ in range(5000):
+for _ in range(1000):
+    if _%10==0:
+        print(_)
     act_rng, rng = jax.random.split(rng)
-    obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-    obs = obs.at[1].set(obs[1] + h_target + byas)
+    obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([7, 0]))
+    # obs = obs.at[1].set(obs[1] + h_target + byas)
     action, _ = jit_inference_fn(obs, act_rng)
 
-    mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], 0.0]
-    for _ in range(eval_env._n_frames):
+    mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
+    for k in range(eval_env._n_frames):
         mujoco.mj_step(mj_model, mj_data)  # Physics step using MuJoCo mj_step.
-        z_pos.append(-mj_data.qpos[1])
+        z_pos.append(mj_data.qvel[0])
         t.append(mj_data.time)
         ydataerr.append(0.0)
 
 plt.xlabel('environment steps')
-plt.ylabel('height')
+plt.ylabel('velocity')
 plt.title(f'y={z_pos[-1]:.3f}')
 
 plt.errorbar(
     t, z_pos, yerr=ydataerr)
-plt.axhline(y=h_target, color='red', linewidth=1, label='reference')
+plt.axhline(y=7, color='red', linewidth=1, label='reference')
 
 # plt.autoscale(enable=True, axis='both', tight=True)
 plt.margins(y=0.1)

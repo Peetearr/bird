@@ -102,7 +102,7 @@ class Bird(PipelineEnv):
     com_after = data.qpos[:6]
     error_height = -jp.abs(data.qpos[1])
     error_v_x = -jp.abs(state.info['vel'][0] - data.qvel[0])
-    error_v_y = -jp.abs(state.info['vel'][1] - data.qvel[2])
+    error_v_y = 0#-jp.abs(state.info['vel'][1] - data.qvel[2])
     forward_reward = self._forward_reward_weight * (error_height + error_v_x + error_v_y)
 
     # min_z, max_z = self._healthy_z_range
@@ -144,13 +144,13 @@ class Bird(PipelineEnv):
 
     # external_contact_forces are excluded
     return jp.concatenate([
-        command,
+        command[0:1],
         data.qpos[1:2],
         data.qpos[3:9],
         data.qpos[12:],
         data.qacc[6:9],
         data.qacc[12:],
-        data.qvel[6:9],
+        data.qvel[:9],
         data.qvel[12:]])
     # ,
     #     data.qfrc_actuator[6:],

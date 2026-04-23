@@ -3,6 +3,7 @@
     <worldbody>
         <body name="base" pos=".25 .25 .15" euler="0 90 0">
             <!-- <joint type="free"/> -->
+            <camera name="0" mode="fixed" pos="0 0 2"/>
             <joint type="slide" axis="0 0 1" armature="0.00001"/>
             <joint type="slide" axis="1 0 0" armature="0.00001"/>
             <joint type="slide" axis="0 1 0" armature="0.00001"/>

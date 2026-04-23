@@ -22,7 +22,7 @@ import brax.training.acme.specs
 
 parser = argparse.ArgumentParser(description='Алгоритм')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac/best_policy') 
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_3/best_policy')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000102727680')
 args = parser.parse_args()
 
 ckpt_path = args.path
@@ -50,8 +50,8 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
         while True:
             t_0 = time.time()
             act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-            obs = obs.at[1].set(obs[1] + h_target + byas)
+            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([3, 0]))
+            # obs = obs.at[1].set(obs[1] + h_target + byas)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
             if any(act > 1 or act < -1 for act in action):

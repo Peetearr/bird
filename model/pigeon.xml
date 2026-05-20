@@ -1,6 +1,9 @@
 <mujoco>
 
     <worldbody>
+        <body name="red_marker" mocap="true">
+            <geom type="sphere" size="0.05" rgba="1 0 0 0.95"/>
+        </body>
         <body name="base" pos=".25 .25 .15" euler="0 90 0">
             <!-- <joint type="free"/> -->
             <camera name="0" mode="fixed" pos="0 0 2"/>

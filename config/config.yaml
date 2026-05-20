@@ -13,7 +13,7 @@ ppo:
   entropy_cost: 0.001
   num_envs: 3072
   batch_size: 256
-  save_checkpoint_path: '/home/user/bird/logs/ppo_vel'
+  save_checkpoint_path: '/home/user/bird/logs/ppo_vel1'
   seed: 0
 
 sac:

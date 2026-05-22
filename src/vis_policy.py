@@ -43,14 +43,17 @@ ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
 h_target = 1
-byas = .17
+byas_x = 0#.1
+byas_y = 1
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
             t_0 = time.time()
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-            obs = obs.at[1].set(obs[1] + h_target + byas)
+            obs = obs.at[1].set(obs[1] + h_target)
+            obs = obs.at[0].set(obs[0] + byas_x)
+            obs = obs.at[2].set(obs[2] + byas_y)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
             if any(act > 1 or act < -1 for act in action):

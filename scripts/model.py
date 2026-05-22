@@ -72,9 +72,15 @@ class Bird(PipelineEnv):
     qvel = jax.random.uniform(
         rng2, (self.sys.nv,), minval=low, maxval=hi
     )
-    target_vel = jax.random.uniform(
-        rng_target, (2,), minval=0, maxval=8
+    direct = jax.random.uniform(
+        rng_target, (1,), minval=-jp.pi, maxval=jp.pi
     )
+    angle = direct.squeeze()
+    target_vel = jp.stack([jp.cos(angle), jp.sin(angle)])
+    speed = 7.0
+    target_vel = target_vel * speed
+    
+    # target_vel = jp.where(target_vel < 0, target_vel - 4, target_vel + 4)
     qpos = qpos.at[6:].set(0.0)
     qvel = qvel.at[6:].set(0.0)
 
@@ -102,7 +108,7 @@ class Bird(PipelineEnv):
     com_after = data.qpos[:6]
     error_height = -jp.abs(data.qpos[1])
     error_v_x = -jp.abs(state.info['vel'][0] - data.qvel[0])
-    error_v_y = 0#-jp.abs(state.info['vel'][1] - data.qvel[2])
+    error_v_y = -jp.abs(state.info['vel'][1] - data.qvel[2])
     forward_reward = self._forward_reward_weight * (error_height + error_v_x + error_v_y)
 
     # min_z, max_z = self._healthy_z_range
@@ -112,7 +118,6 @@ class Bird(PipelineEnv):
     #   healthy_reward = self._healthy_reward
     # else:
     #   healthy_reward = self._healthy_reward * is_healthy
-
     # ctrl_cost = self._ctrl_cost_weight * jp.sum(jp.square(action))
 
     obs = self._get_obs(data, action, state.info['vel'])
@@ -125,7 +130,7 @@ class Bird(PipelineEnv):
         reward_alive=0.0,#healthy_reward,
         x_position=com_after[0],
         y_position=com_after[1],
-        z_position=error_v_x,
+        z_position=forward_reward,
         distance_from_target=error_height
     )
     # jax.debug.breakpoint()

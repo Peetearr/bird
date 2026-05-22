@@ -70,7 +70,7 @@ L_to_u = CubicSpline(L_u, t_fine)
 parser = argparse.ArgumentParser(description='Алгоритм')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000070287360')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel1/000102727680')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/sac_2/000028596352')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel2/000014008320')
 
 args = parser.parse_args()
 
@@ -109,10 +109,10 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             x = cs_x(L_to_u(np.clip(sim_time*V, 0, total_length)))
             y = cs_y(L_to_u(np.clip(sim_time*V, 0, total_length)))
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
-            print(velocity)
+            # print(mj_data.qvel[1])
 
             act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([1,0]))
+            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([0, -7]))
             # obs = obs.at[1].set(obs[1] + h_target + byas)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
@@ -121,7 +121,7 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
 
             # mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
             mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
-            mj_data.mocap_pos[0] = [x+.25, y+.25, 0+.15]
+            # mj_data.mocap_pos[0] = [x+.25, y+.25, 0+.15]
             for _ in range(eval_env._n_frames):
                 mujoco.mj_step(mj_model, mj_data)
                 viewer.sync()

@@ -39,12 +39,12 @@ def controller(ff: np.array, calc_pos: np.array,
 
 points = np.array([
     [0, 0],
-    [40, 10],
-    [50, 60],
-    [0, 90],
-    [-40, 70],
-    [-60, 40],
-    [-70, -20]
+    [4, 1],
+    [5, 6],
+    [0, 9],
+    [-4, 7],
+    [-6, 4],
+    [-7, -2]
 ])
 
 N = len(points)
@@ -98,22 +98,24 @@ rng = jax.random.PRNGKey(0)
 h_target = 0
 # byas_x = 0#.1
 # byas_y = 1
-V = 1
+V = .1
 current_error = np.array([0.0, 0.0])
+x_real = []
+y_real = []
+x_target = []
+y_target = []
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
-        while True:
+        while mj_data.time<200.0:
             sim_time = mj_data.time
             dx = cs_dx(L_to_u(np.clip(sim_time*V, 0, total_length)))
             dy = cs_dy(L_to_u(np.clip(sim_time*V, 0, total_length)))
             norm = np.linalg.norm([dx, dy])
             feedforward = [dx*V/norm, dy*V/norm]
-            x = cs_x(L_to_u(np.clip((sim_time-5)*V, 0, total_length)))
-            y = cs_y(L_to_u(np.clip((sim_time-5)*V, 0, total_length)))
+            x = cs_x(L_to_u(np.clip((sim_time)*V, 0, total_length)))
+            y = cs_y(L_to_u(np.clip((sim_time)*V, 0, total_length)))
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
             mj_data.mocap_pos[0] = [x+.5, y+.25, 0+.15]
-            mj_data.mocap_quat[0] = [1, 0, 0, 0]
-            t_0 = time.time()
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
             obs = obs.at[1].set(obs[1] + h_target)
@@ -128,5 +130,20 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
             for _ in range(eval_env._n_frames):
                 mujoco.mj_step(mj_model, mj_data)
-                viewer.sync()
-                print(mj_data.time)
+                x_real.append(mj_data.qpos[0])
+                y_real.append(mj_data.qpos[2])
+                x_target.append(x)
+                y_target.append(y)
+                # viewer.sync()
+
+plt.xlabel('x')
+plt.ylabel('y')
+
+plt.plot(
+    x_real, y_real)
+plt.plot(
+    x_target, y_target)
+
+# plt.autoscale(enable=True, axis='both', tight=True)
+plt.margins(y=0.1)
+plt.show()

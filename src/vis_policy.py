@@ -3,6 +3,17 @@ from pathlib import Path
 import argparse
 import functools
 
+import sys
+from pathlib import Path
+import argparse
+import functools
+from scipy.interpolate import CubicSpline
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from scipy.integrate import cumulative_trapezoid as cumtrapz
+import time
+
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
@@ -19,6 +30,48 @@ from brax.training.agents.ppo import checkpoint as ppo_checkpoint
 from brax.training.agents.ppo import networks as ppo_networks
 import brax.training.acme.specs
 
+def controller(ff: np.array, calc_pos: np.array, 
+                real_pos: np.array, prev_error: np.array,
+                kp=np.array([0.0, 0.0]), kd=np.array([0.0, 0.0]), dt = .01):
+    error_pos = calc_pos - real_pos
+    derror_pos = (error_pos - prev_error)/dt
+    return jp.array(ff + error_pos*kp + derror_pos*kd), error_pos
+
+points = np.array([
+    [0, 0],
+    [40, 10],
+    [50, 60],
+    [0, 90],
+    [-40, 70],
+    [-60, 40],
+    [-70, -20]
+])
+
+N = len(points)
+
+# Параметризация по длине хорды
+t = np.zeros(N)
+for i in range(1, N):
+    dist = np.linalg.norm(points[i] - points[i-1])
+    t[i] = t[i-1] + dist
+
+cs_x = CubicSpline(t, points[:, 0], bc_type='natural')
+cs_y = CubicSpline(t, points[:, 1], bc_type='natural')
+cs_dx = cs_x.derivative()  # производная для скорости
+cs_dy = cs_y.derivative()
+
+t_fine = np.linspace(t[0], t[-1], 200)
+x_sp = cs_x(t_fine)
+y_sp = cs_y(t_fine)
+
+dx_du = cs_dx(t_fine)
+dy_du = cs_dy(t_fine)
+ds_du = np.sqrt(dx_du**2 + dy_du**2)
+L_u = cumtrapz(ds_du, t_fine, initial=0)
+total_length = L_u[-1]
+
+# Шаг 2: Обратная функция u(L)
+L_to_u = CubicSpline(L_u, t_fine)
 
 parser = argparse.ArgumentParser(description='Алгоритм')
 parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_3/best_policy')
@@ -42,18 +95,30 @@ mj_data = mujoco.MjData(mj_model)
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
-h_target = 1
-byas_x = 0#.1
-byas_y = 1
+h_target = 0
+# byas_x = 0#.1
+# byas_y = 1
+V = 1
+current_error = np.array([0.0, 0.0])
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
+            sim_time = mj_data.time
+            dx = cs_dx(L_to_u(np.clip(sim_time*V, 0, total_length)))
+            dy = cs_dy(L_to_u(np.clip(sim_time*V, 0, total_length)))
+            norm = np.linalg.norm([dx, dy])
+            feedforward = [dx*V/norm, dy*V/norm]
+            x = cs_x(L_to_u(np.clip((sim_time-5)*V, 0, total_length)))
+            y = cs_y(L_to_u(np.clip((sim_time-5)*V, 0, total_length)))
+            velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
+            mj_data.mocap_pos[0] = [x+.5, y+.25, 0+.15]
+            mj_data.mocap_quat[0] = [1, 0, 0, 0]
             t_0 = time.time()
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
             obs = obs.at[1].set(obs[1] + h_target)
-            obs = obs.at[0].set(obs[0] + byas_x)
-            obs = obs.at[2].set(obs[2] + byas_y)
+            obs = obs.at[0].set(obs[0] - x)
+            obs = obs.at[2].set(obs[2] - y)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)
             if any(act > 1 or act < -1 for act in action):

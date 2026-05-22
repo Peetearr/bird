@@ -185,6 +185,9 @@
                 </body>
             </body>
         </body>
+        <body name="red_marker" mocap="true" >
+            <geom type="sphere" size="0.05" rgba="1 0 0 0.95"/>
+        </body>
     </worldbody>
 
     <equality>

@@ -94,7 +94,7 @@ rng = jax.random.PRNGKey(0)
 
 h_target = 0
 byas = .17
-V = 3
+V = 7
 current_error = [0.0, 0.0]
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
@@ -112,7 +112,7 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             # print(mj_data.qvel[1])
 
             act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([0, -7]))
+            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([0, 7]))
             # obs = obs.at[1].set(obs[1] + h_target + byas)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)

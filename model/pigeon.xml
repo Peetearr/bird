@@ -7,12 +7,12 @@
         <body name="base" pos=".25 .25 .15" euler="0 90 0">
             <!-- <joint type="free"/> -->
             <camera name="0" mode="fixed" pos="0 0 2"/>
-            <joint type="slide" axis="0 0 1" armature="0.00001"/>
-            <joint type="slide" axis="1 0 0" armature="0.00001"/>
-            <joint type="slide" axis="0 1 0" armature="0.00001"/>
-            <joint type="hinge" axis="0 1 0" armature="0.00001"/>
-            <joint type="hinge" axis="1 0 0" armature="0.00001"/>
-            <joint type="hinge" axis="0 0 1" armature="0.00001"/>
+            <joint name="1" type="slide" axis="0 0 1" armature="0.00001"/>
+            <joint name="2" type="slide" axis="1 0 0" armature="0.00001"/>
+            <joint name="3" type="slide" axis="0 1 0" armature="0.00001"/>
+            <joint name="4" type="hinge" axis="0 1 0" armature="0.00001"/>
+            <joint name="5" type="hinge" axis="1 0 0" armature="0.00001"/>
+            <joint name="6" type="hinge" axis="0 0 1" armature="0.00001"/>
             <geom type="capsule" size=".03" fromto="0 0 0 .1 0 0" 
             mass=".05" rgba="0 1 1 .2"/>
             <body name="wing_1_1" pos="0 .02 0" gravcomp="1">
@@ -201,47 +201,24 @@
     </equality>
 
     <actuator>
-        <!-- <position name="morph_1" joint="morph_1" kp="100" dampratio="1" ctrlrange="-.07 0"/>
-        <position name="morph_2" joint="morph_2" kp="100" dampratio="1" ctrlrange="-.07 0"/>
-        <position name="morph_3" joint="morph_3" kp="3" dampratio="1" ctrlrange="0 .26"/>
-        <position name="morph_4" joint="morph_4" kp="3" dampratio="1" ctrlrange="0 .3"/>
-        <position name="morph_5" joint="morph_5" kp="3" dampratio="1" ctrlrange="0 .3"/>
-        <position name="morph_6" joint="morph_6" kp="3" dampratio="1" ctrlrange="0 .28"/>
-        <position name="morph_7" joint="morph_7" kp="3" dampratio="1" ctrlrange="0 .244"/> -->
         <position name="AoA" joint="AoA" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
         <position name="sweep_angle" joint="sweep_angle" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
         <position name="flap_angle" joint="flap_angle" kp="1000" dampratio=".5" ctrlrange="-1.5 1.5"/>
 
-        <!-- <position name="morph_1_2" joint="morph_1_2" kp="100" dampratio="1" ctrlrange="0 .07"/>
-        <position name="morph_2_2" joint="morph_2_2" kp="100" dampratio="1" ctrlrange="0 .07"/>
-        <position name="morph_3_2" joint="morph_3_2" kp="3" dampratio="1" ctrlrange="-.26 0"/>
-        <position name="morph_4_2" joint="morph_4_2" kp="3" dampratio="1" ctrlrange="-.3 0"/>
-        <position name="morph_5_2" joint="morph_5_2" kp="3" dampratio="1" ctrlrange="-.3 0"/>
-        <position name="morph_6_2" joint="morph_6_2" kp="3" dampratio="1" ctrlrange="-.28 0"/>
-        <position name="morph_7_2" joint="morph_7_2" kp="3" dampratio="1" ctrlrange="-.244 0"/> -->
         <position name="AoA2" joint="AoA2" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
         <position name="sweep_angle2" joint="sweep_angle2" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
         <position name="flap_angle2" joint="flap_angle2" kp="1000" dampratio=".5" ctrlrange="-1.5 1.5"/>
 
         <position name="tail_pitch" joint="tail_pitch" kp="1000" dampratio="1" ctrlrange="-1.5 1.5"/>
         <position name="tail_roll" joint="tail_roll" kp="1000" dampratio="1" ctrlrange="-1 1"/>
-        <!-- <position name="tail_1" joint="tail_1" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_2" joint="tail_2" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_3" joint="tail_3" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_4" joint="tail_4" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_5" joint="tail_5" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_6" joint="tail_6" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_7" joint="tail_7" kp="3" dampratio="1" ctrlrange="0 .25"/>
-        <position name="tail_8" joint="tail_8" kp="3" dampratio="1" ctrlrange="0 .25"/>
-
-        <position name="tail_9" joint="tail_9" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_10" joint="tail_10" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_11" joint="tail_11" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_12" joint="tail_12" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_13" joint="tail_13" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_14" joint="tail_14" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_15" joint="tail_15" kp="3" dampratio="1" ctrlrange="-.25 0"/>
-        <position name="tail_16" joint="tail_16" kp="3" dampratio="1" ctrlrange="-.25 0"/> -->
+        
+        <!-- <position name="1" joint="1" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
+        <position name="2" joint="2" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
+        <position name="3" joint="3" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
+        <position name="4" joint="4" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
+        <position name="5" joint="5" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
+        <position name="6" joint="6" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/> -->
+        
     </actuator>
 
     <sensor>

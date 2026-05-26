@@ -96,41 +96,17 @@ h_target = 0
 byas = .17
 V = 7
 current_error = [0.0, 0.0]
+i = 0
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
-            t_0 = time.time()
-
-            rotmat = mj_data.body("base").xmat  # 9 чисел: [xx, xy, xz, yx, yy, yz, zx, zy, zz]
+            rotmat = mj_data.body("base").xmat
             R = rotmat.reshape(3, 3)
+            global_yaw = np.arctan2(R[1, 0], R[0, 0]) + np.pi
+            if i > 100:
+                print(f"dx: {np.cos(global_yaw)}; dy: {np.sin(global_yaw)}")
+                i = 0
+            i+=1
 
-            # Извлекаем угол вокруг глобальной Z
-            # Для матрицы поворота: R[0,0] = cosψ, R[1,0] = sinψ
-            global_yaw = np.arctan2(R[1, 0], R[0, 0])
-
-            print(f"Угол вокруг глобальной Z: {np.degrees(global_yaw):.1f}°")
-
-            sim_time = mj_data.time
-            dx = cs_dx(L_to_u(np.clip(sim_time*V, 0, total_length)))
-            dy = cs_dy(L_to_u(np.clip(sim_time*V, 0, total_length)))
-            norm = np.linalg.norm([dx, dy])
-            feedforward = [dx*V/norm, dy*V/norm]
-            x = cs_x(L_to_u(np.clip(sim_time*V, 0, total_length)))
-            y = cs_y(L_to_u(np.clip(sim_time*V, 0, total_length)))
-            velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
-            # print(mj_data.qvel[1])
-
-            act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([0, 7]))
-            # obs = obs.at[1].set(obs[1] + h_target + byas)
-            # print(obs[1])
-            action, _ = jit_inference_fn(obs, act_rng)
-            if any(act > 1 or act < -1 for act in action):
-                print("Одно или несколько действий выходят за пределы [-1, 1]")
-
-            # mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
-            mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
-            # mj_data.mocap_pos[0] = [x+.25, y+.25, 0+.15]
-            for _ in range(eval_env._n_frames):
-                mujoco.mj_step(mj_model, mj_data)
-                viewer.sync()
+            mujoco.mj_step(mj_model, mj_data)
+            viewer.sync()

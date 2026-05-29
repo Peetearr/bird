@@ -23,7 +23,7 @@ class Bird(PipelineEnv):
       phys_weight = 1e-4,
       **kwargs,
   ):
-#
+
     mj_model = mujoco.MjModel.from_xml_path(
         'model/scene.xml')
     mj_model.opt.solver = mujoco.mjtSolver.mjSOL_CG
@@ -72,10 +72,11 @@ class Bird(PipelineEnv):
     qvel = jax.random.uniform(
         rng2, (self.sys.nv,), minval=low, maxval=hi
     )
-    direct = jax.random.uniform(
-        rng_target, (1,), minval=-jp.pi, maxval=jp.pi
-    )
-    angle = direct.squeeze()
+    # direct = jax.random.uniform(
+    #     rng_target, (1,), minval=-jp.pi, maxval=jp.pi
+    # )
+    # angle = direct.squeeze()
+    angle = 0.0
     target_vel = jp.stack([jp.cos(angle), jp.sin(angle)])
     speed = 7.0
     target_vel = target_vel * speed
@@ -83,10 +84,11 @@ class Bird(PipelineEnv):
     # target_vel = jp.where(target_vel < 0, target_vel - 4, target_vel + 4)
     qpos = qpos.at[6:].set(0.0)
     qvel = qvel.at[6:].set(0.0)
+    qpos = qpos.at[3:6].set(qpos[3:6]*2.0)
 
     data = self.pipeline_init(qpos, qvel)
 
-    obs = self._get_obs(data, jp.zeros(self.sys.nu), target_vel)
+    obs = self._get_obs(data, jp.zeros(self.sys.nu))
     reward, done, zero = jp.zeros(3)
     metrics = {
         'forward_reward': zero,
@@ -105,11 +107,14 @@ class Bird(PipelineEnv):
     data0 = state.pipeline_state
     data = self.pipeline_step(data0, action)
 
+    body_id = 2
+
     com_after = data.qpos[:6]
     error_height = -jp.abs(data.qpos[1])
-    error_v_x = -jp.abs(state.info['vel'][0] - data.qvel[0])
-    error_v_y = -jp.abs(state.info['vel'][1] - data.qvel[2])
-    forward_reward = self._forward_reward_weight * (error_height + error_v_x + error_v_y)
+    vx = data.cvel[body_id, 3]
+    vy = data.cvel[body_id, 4]
+    error_vel = -jp.sqrt((state.info['vel'][0] - vx)**2 + (state.info['vel'][1] - vy)**2)
+    forward_reward = self._forward_reward_weight * (error_height + error_vel)# + error_dx + error_dy)
 
     # min_z, max_z = self._healthy_z_range
     # is_healthy = jp.where(data.qpos[2] < min_z, 0.0, 1.0)
@@ -120,7 +125,7 @@ class Bird(PipelineEnv):
     #   healthy_reward = self._healthy_reward * is_healthy
     # ctrl_cost = self._ctrl_cost_weight * jp.sum(jp.square(action))
 
-    obs = self._get_obs(data, action, state.info['vel'])
+    obs = self._get_obs(data, action)
     reward = forward_reward# + healthy_reward - ctrl_cost
     # done = 1.0 - is_healthy if self._terminate_when_unhealthy else 0.0
     done = 0.0
@@ -140,18 +145,22 @@ class Bird(PipelineEnv):
     )
 
   def _get_obs(
-      self, data: mjx.Data, action: jp.ndarray, command: any 
-  ) -> jp.ndarray:
+      self, data: mjx.Data, action: jp.ndarray) -> jp.ndarray:
     """Observes humanoid body position, velocities, and angles."""
     position = data.qpos
     if self._exclude_current_positions_from_observation:
       position = position[2:]
+    body_base_id = 0
+    quat = data.xquat[body_base_id]  # [w, x, y, z]
+    quat = quat / jp.linalg.norm(quat)
+    mask = quat[0] < 0
+    quat = jp.where(mask, -quat, quat)
 
     # external_contact_forces are excluded
     return jp.concatenate([
-        command[0:1],
         data.qpos[1:2],
-        data.qpos[3:9],
+        quat,
+        data.qpos[6:9],
         data.qpos[12:],
         data.qacc[6:9],
         data.qacc[12:],

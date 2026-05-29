@@ -103,8 +103,11 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             rotmat = mj_data.body("base").xmat
             R = rotmat.reshape(3, 3)
             global_yaw = np.arctan2(R[1, 0], R[0, 0]) + np.pi
-            if i > 100:
+            if i > 1000:
                 print(f"dx: {np.cos(global_yaw)}; dy: {np.sin(global_yaw)}")
+                print(f"{mj_data.cvel[2, 3]:.2f}")
+                print(f"{mj_data.cvel[2, 4]:.2f}")
+                print(f"{mj_data.cvel[2, 5]:.2f}")
                 i = 0
             i+=1
 

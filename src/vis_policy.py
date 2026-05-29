@@ -70,7 +70,7 @@ L_to_u = CubicSpline(L_u, t_fine)
 parser = argparse.ArgumentParser(description='Алгоритм')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000070287360')
 # parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel1/000102727680')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel2/000014008320')
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel_w_orientation1/000102727680')
 
 args = parser.parse_args()
 
@@ -88,6 +88,7 @@ jit_inference_fn = jax.jit(inference_fn)
 
 mj_model = eval_env.sys.mj_model
 mj_data = mujoco.MjData(mj_model)
+mj_data.qpos[4] = -0.9*np.pi/2
 
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
@@ -96,10 +97,10 @@ h_target = 0
 byas = .17
 V = 7
 current_error = [0.0, 0.0]
+t_0 = time.time()
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
-            t_0 = time.time()
 
             rotmat = mj_data.body("base").xmat  # 9 чисел: [xx, xy, xz, yx, yy, yz, zx, zy, zz]
             R = rotmat.reshape(3, 3)
@@ -107,7 +108,6 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             # Извлекаем угол вокруг глобальной Z
             # Для матрицы поворота: R[0,0] = cosψ, R[1,0] = sinψ
             global_yaw = np.arctan2(R[1, 0], R[0, 0])
-
             print(f"Угол вокруг глобальной Z: {np.degrees(global_yaw):.1f}°")
 
             sim_time = mj_data.time
@@ -119,9 +119,12 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             y = cs_y(L_to_u(np.clip(sim_time*V, 0, total_length)))
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
             # print(mj_data.qvel[1])
-
+            
+            t = time.time() - t_0
+            # dy = 7*np.sin(.05*t)
+            print(f"dx: {dx:.1f}; dy {dy:.1f}")
             act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array([0, 7]))
+            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
             # obs = obs.at[1].set(obs[1] + h_target + byas)
             # print(obs[1])
             action, _ = jit_inference_fn(obs, act_rng)

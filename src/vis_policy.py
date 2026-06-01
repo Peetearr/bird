@@ -100,7 +100,6 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             rotmat = mj_data.body("base").xmat
             R = rotmat.reshape(3, 3)
             global_yaw = np.arctan2(R[1, 0], R[0, 0])
-            # print(f"Угол вокруг глобальной Z: {np.degrees(global_yaw):.1f}°")
 
             sim_time = mj_data.time
             dx = cs_dx(L_to_u(np.clip(sim_time*V, 0, total_length)))
@@ -111,7 +110,6 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             y = cs_y(L_to_u(np.clip(sim_time*V, 0, total_length)))
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
             
-            # print(f"dx: {dx:.1f}; dy {dy:.1f}")
             act_rng, rng = jax.random.split(rng)
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array(velocity))
             action, _ = jit_inference_fn(obs, act_rng)

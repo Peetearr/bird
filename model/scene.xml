@@ -1,6 +1,6 @@
 <mujoco>
     <include file="pigeon.xml"/>
-    <option timestep="0.01" integrator="RK4" gravity="0 0 -5" density="1.2" viscosity="0.00002" noslip_iterations="3"/>
+    <option timestep="0.01" integrator="RK4" gravity="0 0 -5" density="1.2" viscosity="0.00002" noslip_iterations="3" wind=".3 0 0"/>
     <!-- "4.905 0 -8.5" -->
     <asset>
         <texture type="skybox" builtin="gradient" 

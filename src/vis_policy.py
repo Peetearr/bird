@@ -1,13 +1,10 @@
 import sys
 from pathlib import Path
 import argparse
-import functools
 from scipy.interpolate import CubicSpline
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 from scipy.integrate import cumulative_trapezoid as cumtrapz
-import time
+import matplotlib.pyplot as plt
 
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
@@ -21,12 +18,11 @@ from scripts.model import Bird
 import time
 from brax.training.agents.sac import checkpoint as sac_checkpoint  
 from brax.training.agents.ppo import checkpoint as ppo_checkpoint
-from brax.training.agents.ppo import networks as ppo_networks
 
 
 def controller(ff: np.array, calc_pos: np.array, 
                 real_pos: np.array, prev_error: np.array,
-                kp=np.array([0.0, 0.0]), kd=np.array([0.0, 0.0]), dt = .01):
+                kp=np.array([2.0, 2.0]), kd=np.array([.05, .05]), dt = .01):
     error_pos = calc_pos - real_pos
     derror_pos = (error_pos - prev_error)/dt
     return jp.array(ff + error_pos*kp + derror_pos*kd), error_pos
@@ -51,7 +47,7 @@ for i in range(1, N):
 
 cs_x = CubicSpline(t, points[:, 0], bc_type='natural')
 cs_y = CubicSpline(t, points[:, 1], bc_type='natural')
-cs_dx = cs_x.derivative()  # производная для скорости
+cs_dx = cs_x.derivative()
 cs_dy = cs_y.derivative()
 
 t_fine = np.linspace(t[0], t[-1], 200)
@@ -63,15 +59,11 @@ dy_du = cs_dy(t_fine)
 ds_du = np.sqrt(dx_du**2 + dy_du**2)
 L_u = cumtrapz(ds_du, t_fine, initial=0)
 total_length = L_u[-1]
-
-# Шаг 2: Обратная функция u(L)
+#Обратная функция u(L)
 L_to_u = CubicSpline(L_u, t_fine)
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-# parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000070287360')
-# parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel1/000102727680')
-parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel_w_orientation1/000102727680')
-
+parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel_w_orientation_task_w_orient/000014008320')
 args = parser.parse_args()
 
 ckpt_path = args.path
@@ -88,27 +80,27 @@ jit_inference_fn = jax.jit(inference_fn)
 
 mj_model = eval_env.sys.mj_model
 mj_data = mujoco.MjData(mj_model)
-mj_data.qpos[4] = -0.9*np.pi/2
 
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
 h_target = 0
-byas = .17
-V = 7
+V = 5
 current_error = [0.0, 0.0]
-t_0 = time.time()
+t = []
+x_real = []
+y_real = []
+x_target = []
+y_target = []
+error_pos = []
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
-        while True:
+        while mj_data.time<60:
 
-            rotmat = mj_data.body("base").xmat  # 9 чисел: [xx, xy, xz, yx, yy, yz, zx, zy, zz]
+            rotmat = mj_data.body("base").xmat
             R = rotmat.reshape(3, 3)
-
-            # Извлекаем угол вокруг глобальной Z
-            # Для матрицы поворота: R[0,0] = cosψ, R[1,0] = sinψ
             global_yaw = np.arctan2(R[1, 0], R[0, 0])
-            print(f"Угол вокруг глобальной Z: {np.degrees(global_yaw):.1f}°")
+            # print(f"Угол вокруг глобальной Z: {np.degrees(global_yaw):.1f}°")
 
             sim_time = mj_data.time
             dx = cs_dx(L_to_u(np.clip(sim_time*V, 0, total_length)))
@@ -118,22 +110,32 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             x = cs_x(L_to_u(np.clip(sim_time*V, 0, total_length)))
             y = cs_y(L_to_u(np.clip(sim_time*V, 0, total_length)))
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
-            # print(mj_data.qvel[1])
             
-            t = time.time() - t_0
-            # dy = 7*np.sin(.05*t)
-            print(f"dx: {dx:.1f}; dy {dy:.1f}")
+            # print(f"dx: {dx:.1f}; dy {dy:.1f}")
             act_rng, rng = jax.random.split(rng)
-            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl)
-            # obs = obs.at[1].set(obs[1] + h_target + byas)
-            # print(obs[1])
+            obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array(velocity))
             action, _ = jit_inference_fn(obs, act_rng)
             if any(act > 1 or act < -1 for act in action):
                 print("Одно или несколько действий выходят за пределы [-1, 1]")
 
-            # mj_data.ctrl = [action[0], action[1], action[2], action[0], action[1], -action[2], action[3], action[4]]
             mj_data.ctrl = [action[0] * .7, action[1] * .7, action[2] * 1.5, action[0] * .7, action[1] * .7, -action[2] * 1.5, action[3] * 1.5, action[4]* 1.]
-            # mj_data.mocap_pos[0] = [x+.25, y+.25, 0+.15]
+            mj_data.mocap_pos[0] = [x+.25, y+.25, 0+.15]
             for _ in range(eval_env._n_frames):
                 mujoco.mj_step(mj_model, mj_data)
+                x_real.append(mj_data.qpos[0])
+                y_real.append(mj_data.qpos[2])
+                x_target.append(x)
+                y_target.append(y)
+                error_pos.append(np.linalg.norm(np.array([mj_data.qpos[0] - x, mj_data.qpos[2] - y])))
+                t.append(mj_data.time)
                 viewer.sync()
+
+plt.xlabel('x')
+plt.ylabel('y')
+
+plt.plot(y_target, x_target)
+plt.plot(y_real, x_real)
+# plt.plot(t, error_pos)
+# plt.axhline(y=1, color='red', linewidth=1, label='reference')
+plt.margins(y=0.1)
+plt.show()

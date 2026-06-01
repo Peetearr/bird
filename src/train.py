@@ -35,8 +35,8 @@ def progress(num_steps, metrics):
     y_data.append(metrics['eval/episode_reward'])
     ydataerr.append(metrics['eval/episode_reward_std'])
     print(num_steps)
-    print(f'distance_from_target {metrics['eval/episode_distance_from_target']}')
-    print(f'velocity {metrics['eval/episode_z_position']}')
+    print(f'h error {metrics['eval/episode_distance_from_target']}')
+    print(f'reward {metrics['eval/episode_z_position']}')
 
 if args.alg == 'sac':
     train_fn = train_fn_sac

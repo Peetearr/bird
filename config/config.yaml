@@ -1,5 +1,5 @@
 ppo:
-  num_timesteps: 100000000
+  num_timesteps: 10000000
   num_evals: 20
   reward_scaling: 1
   episode_length: 1000
@@ -13,7 +13,7 @@ ppo:
   entropy_cost: 0.001
   num_envs: 128
   batch_size: 256
-  save_checkpoint_path: '/home/user/bird/logs/ppo_vel_w_orientation1'
+  save_checkpoint_path: '/home/user/bird/logs/ppo_vel_w_orientation_task_w_orient'
   seed: 0
 
 sac:

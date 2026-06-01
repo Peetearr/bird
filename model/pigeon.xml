@@ -6,7 +6,7 @@
         </body>
         <body name="base" pos=".25 .25 .15" euler="0 90 0">
             <!-- <joint type="free"/> -->
-            <camera name="0" mode="fixed" pos="0 0 2"/>
+            <camera name="0" mode="track" pos="0 0 2"/>
             <joint name="1" type="slide" axis="0 0 1" armature="0.00001"/>
             <joint name="2" type="slide" axis="1 0 0" armature="0.00001"/>
             <joint name="3" type="slide" axis="0 1 0" armature="0.00001"/>

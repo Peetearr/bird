@@ -100,14 +100,25 @@ i = 0
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
         while True:
-            rotmat = mj_data.body("base").xmat
+            rotmat = mj_data.xmat[2]
             R = rotmat.reshape(3, 3)
             global_yaw = np.arctan2(R[1, 0], R[0, 0]) + np.pi
             if i > 1000:
-                print(f"dx: {np.cos(global_yaw)}; dy: {np.sin(global_yaw)}")
-                print(f"{mj_data.cvel[2, 3]:.2f}")
-                print(f"{mj_data.cvel[2, 4]:.2f}")
-                print(f"{mj_data.cvel[2, 5]:.2f}")
+                # print(f"dx: {np.cos(global_yaw)}; dy: {np.sin(global_yaw)}")
+                body_id = 2
+                vx = mj_data.cvel[body_id, 3]
+                vy = mj_data.cvel[body_id, 4]
+                rotmat = mj_data.xmat[2]
+                R = rotmat.reshape(3, 3)
+                global_yaw = jp.arctan2(R[1, 0], R[0, 0]) + jp.pi
+                norm_v = jp.linalg.norm(jp.array([vx, vy]))
+                error_orient = jp.linalg.norm(jp.array([jp.cos(global_yaw) - vx/norm_v, jp.sin(global_yaw) - vy/norm_v]))
+                print(f"vx: {vx/norm_v:.2f}, vy: {vy/norm_v:.2f}")
+                print(f"Ox: {jp.cos(global_yaw):.2f}, Oy: {jp.sin(global_yaw):.2f}")
+                print(f"Ошибка ориентации: {error_orient:.2f}")
+                # print(f"{mj_data.cvel[2, 4]:.2f}")
+                # print(f"{mj_data.cvel[2, 5]:.2f}")
+                # print(f"{mj_data.xquat[2]}")
                 i = 0
             i+=1
 

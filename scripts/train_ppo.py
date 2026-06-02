@@ -17,7 +17,7 @@ make_networks_factory = functools.partial(
         policy_hidden_layer_sizes=(128, 128, 128, 128))
 train_fn = functools.partial(
     ppo.train,  
-    restore_checkpoint_path='/home/user/bird/logs/ppo_2/best_policy',
+    restore_checkpoint_path='/home/user/bird/logs/ppo_3/best_policy',
     num_timesteps = config['ppo']['num_timesteps'],
     num_evals=config['ppo']['num_evals'],
     reward_scaling=config['ppo']['reward_scaling'],

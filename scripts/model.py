@@ -72,6 +72,16 @@ class Bird(PipelineEnv):
     qvel = jax.random.uniform(
         rng2, (self.sys.nv,), minval=low, maxval=hi
     )
+    # wind = jax.random.uniform(
+    #     rng_wind, (2,), minval=-1.0, maxval=1.0
+    # )
+    # ampl_wind = wind[0].squeeze()*.5+.5
+    # angle_wind = wind[1].squeeze()*jp.pi
+    # new_wind = jp.array([ampl_wind * jp.sin(angle_wind), 
+    #                      ampl_wind * jp.cos(angle_wind), 
+    #                      0.0])
+    # new_opt = self.sys.opt.replace(wind=new_wind)
+    # self.sys = self.sys.replace(opt=new_opt)
     qpos = qpos.at[6:].set(0.0)
     qvel = qvel.at[6:].set(0.0)
 

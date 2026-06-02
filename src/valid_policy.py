@@ -46,11 +46,12 @@ jit_inference_fn = jax.jit(inference_fn)
 
 mj_model = eval_env.sys.mj_model
 mj_data = mujoco.MjData(mj_model)
+mj_model.opt.wind = jp.array([0.0, -0.2, 0.0])  # [x, y, z]
 
 ctrl = jp.zeros(mj_model.nu)
 rng = jax.random.PRNGKey(0)
 
-h_target = 1.0
+h_target = 0.0
 byas = .17
 z_pos = []
 t = []

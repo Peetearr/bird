@@ -12,8 +12,6 @@ from brax import envs
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-
-# Выбор политики алгоритма
 parser = argparse.ArgumentParser(description='Алгоритм')
 parser.add_argument('--alg', type=str, default='sac',
                         help='Название алгоритма (sac/ppo)')

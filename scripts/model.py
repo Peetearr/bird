@@ -41,7 +41,7 @@ class Bird(PipelineEnv):
     self.action_map = {
             0: [0, 3],
             1: [1, 4],
-            2: [2, 5],  # action[0] управляет приводами 0 и 1
+            2: [2, 5],
             6: [6],
             7: [7]
         }
@@ -72,16 +72,6 @@ class Bird(PipelineEnv):
     qvel = jax.random.uniform(
         rng2, (self.sys.nv,), minval=low, maxval=hi
     )
-    # wind = jax.random.uniform(
-    #     rng_wind, (2,), minval=-1.0, maxval=1.0
-    # )
-    # ampl_wind = wind[0].squeeze()*.5+.5
-    # angle_wind = wind[1].squeeze()*jp.pi
-    # new_wind = jp.array([ampl_wind * jp.sin(angle_wind), 
-    #                      ampl_wind * jp.cos(angle_wind), 
-    #                      0.0])
-    # new_opt = self.sys.opt.replace(wind=new_wind)
-    # self.sys = self.sys.replace(opt=new_opt)
     qpos = qpos.at[6:].set(0.0)
     qvel = qvel.at[6:].set(0.0)
 
@@ -109,25 +99,13 @@ class Bird(PipelineEnv):
     com_after = data.qpos[:6]
     distance = -jp.linalg.norm(com_after)
     forward_reward = self._forward_reward_weight * distance
-
-    # min_z, max_z = self._healthy_z_range
-    # is_healthy = jp.where(data.qpos[2] < min_z, 0.0, 1.0)
-    # is_healthy = jp.where(data.qpos[2] > max_z, 0.0, is_healthy)
-    # if self._terminate_when_unhealthy:
-    #   healthy_reward = self._healthy_reward
-    # else:
-    #   healthy_reward = self._healthy_reward * is_healthy
-
-    # ctrl_cost = self._ctrl_cost_weight * jp.sum(jp.square(action))
-
     obs = self._get_obs(data, action)
-    reward = forward_reward# + healthy_reward - ctrl_cost
-    # done = 1.0 - is_healthy if self._terminate_when_unhealthy else 0.0
+    reward = forward_reward
     done = 0.0
     state.metrics.update(
         forward_reward=forward_reward,
-        reward_quadctrl=0.0,#-ctrl_cost,
-        reward_alive=0.0,#healthy_reward,
+        reward_quadctrl=0.0,
+        reward_alive=0.0,
         x_position=com_after[0],
         y_position=com_after[1],
         z_position=com_after[2],
@@ -147,7 +125,6 @@ class Bird(PipelineEnv):
     if self._exclude_current_positions_from_observation:
       position = position[2:]
 
-    # external_contact_forces are excluded
     return jp.concatenate([
         data.qpos[:9],
         data.qpos[12:],
@@ -155,6 +132,3 @@ class Bird(PipelineEnv):
         data.qacc[12:],
         data.qvel[6:9],
         data.qvel[12:]])
-    # ,
-    #     data.qfrc_actuator[6:],
-    # ])

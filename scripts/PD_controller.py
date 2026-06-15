@@ -1,10 +1,7 @@
 import mujoco
 import mujoco.viewer
 import numpy as np
-from scipy.spatial.transform import Rotation
-import argparse
 import time
-import pickle
 import matplotlib.pyplot as plt
 
 def control(err, derr, kp = 1, kd = .01, A_0 = 1.8):
@@ -63,17 +60,10 @@ while True:
     viewer.sync()
     print(d.qvel)
     time.sleep(.01)
-    # actions.append(act)
     observations.append(obs)
     if d.time - t_0 > 5:
         t_0 = d.time
         print('saving')
-        # demos = {
-        #         'observation': np.array(observations),
-        #         'action': np.array(actions),
-        #         }
-        # with open('expert_traj/' + file_name + '.pkl', 'wb') as f:
-        #     pickle.dump(demos, f)
 
     if d.time > 30:
         plt.xlabel('environment steps')

@@ -76,7 +76,5 @@ plt.title(f'y={z_pos[-1]:.3f}')
 plt.errorbar(
     t, z_pos, yerr=ydataerr)
 plt.axhline(y=h_target, color='red', linewidth=1, label='reference')
-
-# plt.autoscale(enable=True, axis='both', tight=True)
 plt.margins(y=0.1)
 plt.show()

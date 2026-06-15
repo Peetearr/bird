@@ -1,7 +1,6 @@
 <mujoco>
     <include file="pigeon.xml"/>
     <option timestep="0.01" integrator="RK4" gravity="0 0 -5" density="1.2" viscosity="0.00002" noslip_iterations="3" wind="0.0 0.0 0.0"/>
-    <!-- "4.905 0 -8.5" -->
 
     <worldbody>
         <geom name="ground" type="plane" size="2 1.5 0.1" pos="2 1.5 -100" rgba="1 1 1 .3"/>

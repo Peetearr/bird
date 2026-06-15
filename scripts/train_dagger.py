@@ -7,7 +7,6 @@ from scripts.model import Bird
 from brax import envs
 from brax.io import model
 from jax import numpy as jp
-from brax.envs.wrappers import training
 
 from brax.training.agents.bc import train as bc
 
@@ -35,9 +34,6 @@ if __name__ == '__main__':
   env_name = 'bird'
   env = envs.get_environment(env_name)
   env = envs.training.wrap(env, episode_length=1000, action_repeat=1)
-  # env = training.EpisodeWrapper(env, 6, 1)
-  # env = training.VmapWrapper(env, 50)
-  # env = training.AutoResetWrapper(env)
 
   x_data = []
   y_data = []
@@ -48,10 +44,6 @@ if __name__ == '__main__':
     return jp.array([1.0, 1.0, 0.0, 0.0, 0.0])
 
   def progress(num_steps, metrics):
-    # times.append(datetime.now())
-    # x_data.append(num_steps)
-    # print(metrics)
-    # y_data.append(metrics['reward_mean'])
     print(num_steps)
 
   make_inference_fn, params, m= train_fn(env=env, progress_fn=progress, teacher_inference_fn=teacher_inference)
@@ -68,9 +60,6 @@ if __name__ == '__main__':
   plt.xlabel('# environment steps')
   plt.ylabel('reward per episode')
   plt.title(f'y={y_data[-1]:.3f}')
-
-  # plt.errorbar(
-  #     x_data, y_data, yerr=ydataerr)
       
   plt.autoscale(enable=True, axis='both', tight=True)
   plt.show()

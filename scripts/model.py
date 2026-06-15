@@ -1,6 +1,5 @@
 import jax
 from jax import numpy as jp
-from jaxlie import SO3
 
 import mujoco
 from mujoco import mjx

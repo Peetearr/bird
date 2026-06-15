@@ -39,7 +39,6 @@ points = np.array([
 
 N = len(points)
 
-# Параметризация по длине хорды
 t = np.zeros(N)
 for i in range(1, N):
     dist = np.linalg.norm(points[i] - points[i-1])
@@ -59,7 +58,6 @@ dy_du = cs_dy(t_fine)
 ds_du = np.sqrt(dx_du**2 + dy_du**2)
 L_u = cumtrapz(ds_du, t_fine, initial=0)
 total_length = L_u[-1]
-#Обратная функция u(L)
 L_to_u = CubicSpline(L_u, t_fine)
 
 parser = argparse.ArgumentParser(description='Алгоритм')
@@ -93,9 +91,10 @@ y_real = []
 x_target = []
 y_target = []
 error_pos = []
+h = []
 with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
     with mujoco.Renderer(mj_model, 400, 600) as renderer:
-        while mj_data.time<60:
+        while mj_data.time<30:
 
             rotmat = mj_data.body("base").xmat
             R = rotmat.reshape(3, 3)
@@ -111,6 +110,7 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             velocity, current_error = controller(feedforward, np.array([x, y]), np.array([mj_data.qpos[0], mj_data.qpos[2]]), current_error)
             
             act_rng, rng = jax.random.split(rng)
+            velocity = [3.0, -5.0]
             obs = eval_env._get_obs(mjx.put_data(mj_model, mj_data), ctrl, jp.array(velocity))
             action, _ = jit_inference_fn(obs, act_rng)
             if any(act > 1 or act < -1 for act in action):
@@ -126,14 +126,12 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
                 y_target.append(y)
                 error_pos.append(np.linalg.norm(np.array([mj_data.qpos[0] - x, mj_data.qpos[2] - y])))
                 t.append(mj_data.time)
+                h.append(-mj_data.qpos[1])
                 viewer.sync()
 
-plt.xlabel('x')
-plt.ylabel('y')
+plt.xlabel('t')
+plt.ylabel('h')
 
-plt.plot(y_target, x_target)
-plt.plot(y_real, x_real)
-# plt.plot(t, error_pos)
-# plt.axhline(y=1, color='red', linewidth=1, label='reference')
+plt.plot(t, h)
 plt.margins(y=0.1)
 plt.show()

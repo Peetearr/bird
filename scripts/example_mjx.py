@@ -1,18 +1,6 @@
 import mujoco
 from mujoco import mjx
 
-from brax import base
-from brax import envs
-from brax import math
-from brax.base import Base, Motion, Transform
-from brax.base import State as PipelineState
-from brax.envs.base import Env, PipelineEnv, State
-from brax.mjx.base import State as MjxState
-from brax.training.agents.ppo import train as ppo
-from brax.training.agents.ppo import networks as ppo_networks
-from brax.io import html, mjcf, model
-
-
 xml = """
 <mujoco>
   <worldbody>
@@ -26,7 +14,6 @@ xml = """
 </mujoco>
 """
 
-# Make model, data, and renderer
 mj_model = mujoco.MjModel.from_xml_string(xml)
 mj_data = mujoco.MjData(mj_model)
 

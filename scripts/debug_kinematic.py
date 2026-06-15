@@ -1,13 +1,9 @@
 import sys
 from pathlib import Path
 import argparse
-import functools
 from scipy.interpolate import CubicSpline
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 from scipy.integrate import cumulative_trapezoid as cumtrapz
-import time
 
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
@@ -16,12 +12,10 @@ import mujoco
 import mujoco.viewer
 from brax import envs
 import jax.numpy as jp
-from mujoco import mjx
 from scripts.model import Bird
 import time
 from brax.training.agents.sac import checkpoint as sac_checkpoint  
 from brax.training.agents.ppo import checkpoint as ppo_checkpoint
-from brax.training.agents.ppo import networks as ppo_networks
 
 
 def controller(ff: np.array, calc_pos: np.array, 
@@ -43,7 +37,6 @@ points = np.array([
 
 N = len(points)
 
-# Параметризация по длине хорды
 t = np.zeros(N)
 for i in range(1, N):
     dist = np.linalg.norm(points[i] - points[i-1])
@@ -51,7 +44,7 @@ for i in range(1, N):
 
 cs_x = CubicSpline(t, points[:, 0], bc_type='natural')
 cs_y = CubicSpline(t, points[:, 1], bc_type='natural')
-cs_dx = cs_x.derivative()  # производная для скорости
+cs_dx = cs_x.derivative()
 cs_dy = cs_y.derivative()
 
 t_fine = np.linspace(t[0], t[-1], 200)
@@ -63,13 +56,9 @@ dy_du = cs_dy(t_fine)
 ds_du = np.sqrt(dx_du**2 + dy_du**2)
 L_u = cumtrapz(ds_du, t_fine, initial=0)
 total_length = L_u[-1]
-
-# Шаг 2: Обратная функция u(L)
 L_to_u = CubicSpline(L_u, t_fine)
 
 parser = argparse.ArgumentParser(description='Алгоритм')
-# parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel/000070287360')
-# parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel1/000102727680')
 parser.add_argument('--path', type=str, default='/home/user/bird/logs/ppo_vel2/000014008320')
 
 args = parser.parse_args()
@@ -104,7 +93,6 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
             R = rotmat.reshape(3, 3)
             global_yaw = np.arctan2(R[1, 0], R[0, 0]) + np.pi
             if i > 1000:
-                # print(f"dx: {np.cos(global_yaw)}; dy: {np.sin(global_yaw)}")
                 body_id = 2
                 vx = mj_data.cvel[body_id, 3]
                 vy = mj_data.cvel[body_id, 4]
@@ -116,9 +104,6 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
                 print(f"vx: {vx/norm_v:.2f}, vy: {vy/norm_v:.2f}")
                 print(f"Ox: {jp.cos(global_yaw):.2f}, Oy: {jp.sin(global_yaw):.2f}")
                 print(f"Ошибка ориентации: {error_orient:.2f}")
-                # print(f"{mj_data.cvel[2, 4]:.2f}")
-                # print(f"{mj_data.cvel[2, 5]:.2f}")
-                # print(f"{mj_data.xquat[2]}")
                 i = 0
             i+=1
 

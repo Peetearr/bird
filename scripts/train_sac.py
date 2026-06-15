@@ -19,7 +19,6 @@ make_networks_factory = functools.partial(
 
 train_fn = functools.partial(
     sac.train,
-    # restore_checkpoint_path='/home/user/bird/logs/sac_2/000022878720',
     num_timesteps = config['sac']['num_timesteps'],
     num_evals=config['sac']['num_evals'],
     reward_scaling=config['sac']['reward_scaling'],

@@ -22,31 +22,24 @@
                 <geom type="box" size=".055 .035 .0005" pos=".055 .035 0" 
                     mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                 <body name="wing_1_2" pos="0 .07 0" gravcomp="1">
-                    <!-- <joint name="morph_1" type="slide" axis="0 1 0" range="-.7 0" limited="true"/> -->
                     <geom type="box" size=".055 .035 .0005" pos=".055 .035 .0005"
                         mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                     <body name="wing_1_3" pos="0 .07 0" gravcomp="1">
-                        <!-- <joint name="morph_2" type="slide" axis="0 1 0" range="-.7 0" limited="true"/> -->
                         <geom type="box" size=".055 .035 .0005" pos=".055 .035 .0005"
                             mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                         <body name="wing_1_4" pos="0 .07 0" euler="0 0 15" gravcomp="1">
-                            <!-- <joint name="morph_3" axis="0 0 1" range="0 .26" limited="true"/> -->
                             <geom type="box" size=".0535 .015 .0005" pos=".0535 -.015 .0005"
                                 mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                             <body name="wing_1_5" pos="0 0 0" euler="0 0 17" gravcomp="1">
-                                <!-- <joint name="morph_4" axis="0 0 1" range="0 .3" limited="true"/> -->
                                 <geom type="box" size=".0535 .015 .0005" pos=".0535 -.015 .0005"
                                     mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                 <body name="wing_1_6" pos="0 0 0" euler="0 0 17" gravcomp="1">
-                                    <!-- <joint name="morph_5" axis="0 0 1" range="0 .3" limited="true"/> -->
                                     <geom type="box" size=".056 .015 .0005" pos=".056 -.015 .0005"
                                         mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                     <body name="wing_1_7" pos="0 0 0" euler="0 0 16" gravcomp="1">
-                                        <!-- <joint name="morph_6" axis="0 0 1" range="0 .28" limited="true"/> -->
                                         <geom type="box" size=".0635 .015 .0005" pos=".0635 -.015 .0005"
                                             mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                         <body name="wing_1_8" pos="0 0 0" euler="0 0 14" gravcomp="1">
-                                            <!-- <joint name="morph_7" axis="0 0 1" range="0 .244" limited="true"/> -->
                                             <geom type="box" size=".07 .015 .0005" pos=".07 -.015 .0005"
                                                 mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                         </body>
@@ -65,31 +58,24 @@
                 <geom type="box" size=".055 .035 .0005" pos=".055 -.035 0" 
                     mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                 <body name="wing_2_2" pos="0 -.07 0" gravcomp="1">
-                    <!-- <joint name="morph_1_2" type="slide" axis="0 1 0" range="0 .7" limited="true"/> -->
                     <geom type="box" size=".055 .035 .0005" pos=".055 -.035 .0005"
                         mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                     <body name="wing_2_3" pos="0 -.07 0" gravcomp="1">
-                        <!-- <joint name="morph_2_2" type="slide" axis="0 1 0" range="0 .7" limited="true"/> -->
                         <geom type="box" size=".055 .035 .0005" pos=".055 -.035 .0005"
                             mass=".001" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                         <body name="wing_2_4" pos="0 -.07 0" euler="0 0 -15" gravcomp="1">
-                            <!-- <joint name="morph_3_2" axis="0 0 1" range="-.26 0" limited="true"/> -->
                             <geom type="box" size=".0535 .015 .0005" pos=".0535 .015 .0005"
                                 mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                             <body name="wing_2_5" pos="0 0 0" euler="0 0 -17" gravcomp="1">
-                                <!-- <joint name="morph_4_2" axis="0 0 1" range="-.3 0" limited="true"/> -->
                                 <geom type="box" size=".0535 .015 .0005" pos=".0535 .015 .0005"
                                     mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                 <body name="wing_2_6" pos="0 0 0" euler="0 0 -17" gravcomp="1">
-                                    <!-- <joint name="morph_5_2" axis="0 0 1" range="-.3 0" limited="true"/> -->
                                     <geom type="box" size=".056 .015 .0005" pos=".056 .015 .0005"
                                         mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                     <body name="wing_2_7" pos="0 0 0" euler="0 0 -16" gravcomp="1">
-                                        <!-- <joint name="morph_6_2" axis="0 0 1" range="-.28 0" limited="true"/> -->
                                         <geom type="box" size=".0635 .015 .0005" pos=".0635 .015 .0005"
                                             mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                         <body name="wing_2_8" pos="0 0 0" euler="0 0 -14" gravcomp="1">
-                                            <!-- <joint name="morph_7_2" axis="0 0 1" range="-.244 0" limited="true"/> -->
                                             <geom type="box" size=".07 .015 .0005" pos=".07 .015 .0005"
                                                 mass=".0002" contype="0" conaffinity="0" rgba="0 1 1 1"/>
                                         </body>
@@ -107,35 +93,27 @@
                 <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                     contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                 <body name="tail_1" euler="0 0 10">
-                    <!-- <joint name="tail_1" axis="0 0 1" limited="true" range="0 .21"/> -->
                     <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                         contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                     <body name="tail_2" euler="0 0 10">
-                        <!-- <joint name="tail_2" axis="0 0 1" limited="true" range="0 .21"/> -->
                         <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                             contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                         <body name="tail_3" euler="0 0 10">
-                            <!-- <joint name="tail_3" axis="0 0 1" limited="true" range="0 .21"/> -->
                             <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                 contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                             <body name="tail_4" euler="0 0 10">
-                                <!-- <joint name="tail_4" axis="0 0 1" limited="true" range="0 .21"/> -->
                                 <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                     contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                 <body name="tail_5" euler="0 0 10">
-                                    <!-- <joint name="tail_5" axis="0 0 1" limited="true" range="0 .21"/> -->
                                     <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                         contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                     <body name="tail_6" euler="0 0 10">
-                                        <!-- <joint name="tail_6" axis="0 0 1" limited="true" range="0 .21"/> -->
                                         <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                             contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                         <body name="tail_7" euler="0 0 10">
-                                            <!-- <joint name="tail_7" axis="0 0 1" limited="true" range="0 .21"/> -->
                                             <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                                 contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                             <body name="tail_8" euler="0 0 10">
-                                                <!-- <joint name="tail_8" axis="0 0 1" limited="true" range="0 .21"/> -->
                                                 <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                                     contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                             </body>
@@ -148,35 +126,27 @@
                 </body>
 
                 <body name="tail_9" euler="0 0 -10">
-                    <!-- <joint name="tail_9" axis="0 0 1" limited="true" range="-.21 0"/> -->
                     <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                         contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                     <body name="tail_10" euler="0 0 -10">
-                        <!-- <joint name="tail_10" axis="0 0 1" limited="true" range="-.21 0"/> -->
                         <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                             contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                         <body name="tail_11" euler="0 0 -10">
-                            <!-- <joint name="tail_11" axis="0 0 1" limited="true" range="-.21 0"/> -->
                             <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                 contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                             <body name="tail_12" euler="0 0 -10">
-                                <!-- <joint name="tail_12" axis="0 0 1" limited="true" range="-.21 0"/> -->
                                 <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                     contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                 <body name="tail_13" euler="0 0 -10">
-                                    <!-- <joint name="tail_13" axis="0 0 1" limited="true" range="-.21 0"/> -->
                                     <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                         contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                     <body name="tail_14" euler="0 0 -10">
-                                        <!-- <joint name="tail_14" axis="0 0 1" limited="true" range="-.21 0"/> -->
                                         <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                             contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                         <body name="tail_15" euler="0 0 -10">
-                                            <!-- <joint name="tail_15" axis="0 0 1" limited="true" range="-.21 0"/> -->
                                             <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                                 contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                             <body name="tail_16" euler="0 0 -10">
-                                                <!-- <joint name="tail_16" axis="0 0 1" limited="true" range="-.21 0"/> -->
                                                 <geom type="box" size=".07 .015 .0005" pos=".07 0 .0005" 
                                                     contype="0" conaffinity="0" mass=".0005" rgba="0 1 0 1"/>
                                             </body>
@@ -191,15 +161,6 @@
         </body>
     </worldbody>
 
-    <equality>
-        <!-- <joint name="linear" joint1="morph_1" joint2="morph_2" polycoef="0 1 0 0 0"/> -->
-        <!-- <joint name="ang_1" joint1="morph_3" joint2="morph_4" polycoef="-.0349 1 0 0 0"/>
-        <joint name="ang_2" joint1="morph_4" joint2="morph_5" polycoef="0 1 0 0 0"/>
-        <joint name="ang_3" joint1="morph_5" joint2="morph_6" polycoef=".01745 1 0 0 0"/>
-        <joint name="ang_4" joint1="morph_6" joint2="morph_7" polycoef=".0349 1 0 0 0"/> -->
-        <!-- <joint name="ang_lin" joint1="morph_2" joint2="morph_3" polycoef="-0.07 .2692 0 0 0"/> -->
-    </equality>
-
     <actuator>
         <position name="AoA" joint="AoA" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
         <position name="sweep_angle" joint="sweep_angle" kp="1000" dampratio=".5" ctrlrange="-.7 .7"/>
@@ -211,13 +172,6 @@
 
         <position name="tail_pitch" joint="tail_pitch" kp="1000" dampratio="1" ctrlrange="-1.5 1.5"/>
         <position name="tail_roll" joint="tail_roll" kp="1000" dampratio="1" ctrlrange="-1 1"/>
-        
-        <!-- <position name="1" joint="1" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
-        <position name="2" joint="2" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
-        <position name="3" joint="3" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
-        <position name="4" joint="4" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
-        <position name="5" joint="5" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/>
-        <position name="6" joint="6" kp="10" dampratio=".1" ctrlrange="-1.5 1.5"/> -->
         
     </actuator>
 
